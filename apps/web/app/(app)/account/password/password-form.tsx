@@ -41,7 +41,7 @@ export function PasswordForm() {
         <Label htmlFor="confirm">Type it again</Label>
         <Input id="confirm" name="confirm" type="password" minLength={8} required />
       </div>
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending} loading={pending}>
         {pending ? "Saving…" : "Save password"}
       </Button>
     </form>

@@ -3,9 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Minus, Plus, ThermometerSnowflake, Wrench } from "lucide-react";
 import type { Product, StockLevel, UnitLevel } from "@kibali/shared";
 import { LOSS_REASONS } from "@kibali/shared";
+
+const REASON_STYLE: Record<string, { icon: typeof AlertTriangle; tone: string }> = {
+  Melted: { icon: ThermometerSnowflake, tone: "from-sky-500 to-blue-600" },
+  Expired: { icon: AlertTriangle, tone: "from-amber-400 to-orange-500" },
+  Broken: { icon: Wrench, tone: "from-rose-500 to-red-600" },
+  Other: { icon: AlertTriangle, tone: "from-slate-500 to-slate-700" },
+};
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -126,18 +133,25 @@ export function LossForm({
           <div>
             <Label className="mb-2 block">What happened?</Label>
             <div className="grid grid-cols-2 gap-2">
-              {LOSS_REASONS.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setReason(r)}
-                  className={`h-12 rounded border-2 font-semibold ${
-                    reason === r ? "border-primary bg-accent" : "border-border bg-background"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
+              {LOSS_REASONS.map((r) => {
+                const { icon: Icon, tone } = REASON_STYLE[r];
+                const active = reason === r;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setReason(r)}
+                    className={`flex h-16 flex-col items-center justify-center gap-1 rounded text-sm font-semibold transition-transform active:scale-[0.98] ${
+                      active
+                        ? `bg-gradient-to-br ${tone} text-white shadow-md`
+                        : "border-2 border-border bg-background text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {r}
+                  </button>
+                );
+              })}
             </div>
             {reason === "Other" && (
               <Input
@@ -149,7 +163,7 @@ export function LossForm({
             )}
           </div>
 
-          <Button size="xl" disabled={pending} onClick={save}>
+          <Button size="xl" disabled={pending} loading={pending} onClick={save}>
             {pending ? "Saving…" : "Save"}
           </Button>
         </>

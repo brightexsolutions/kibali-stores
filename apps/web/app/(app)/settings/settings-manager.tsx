@@ -123,7 +123,7 @@ export function SettingsManager({
               <Label htmlFor="b-desc">What does it sell? (optional)</Label>
               <Textarea id="b-desc" name="description" defaultValue={modal.current?.description ?? ""} />
             </div>
-            <Button type="submit" size="lg" disabled={pending}>
+            <Button type="submit" size="lg" disabled={pending} loading={pending}>
               {pending ? "Saving…" : "Save business"}
             </Button>
           </form>
@@ -154,7 +154,7 @@ export function SettingsManager({
                 defaultValue={modal.current?.monthly_rent ?? ""}
               />
             </div>
-            <Button type="submit" size="lg" disabled={pending}>
+            <Button type="submit" size="lg" disabled={pending} loading={pending}>
               {pending ? "Saving…" : "Save shop"}
             </Button>
           </form>

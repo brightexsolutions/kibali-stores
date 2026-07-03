@@ -188,7 +188,7 @@ export function SupplierDetail({
             <Label htmlFor="pay-method">Paid by (optional)</Label>
             <Input id="pay-method" name="method" placeholder="cash / M-Pesa" />
           </div>
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" disabled={pending} loading={pending}>
             {pending ? "Saving…" : "Record Payment"}
           </Button>
         </form>

@@ -230,7 +230,7 @@ export function DeliveryForm({
             </CardContent>
           </Card>
 
-          <Button size="xl" disabled={pending} onClick={save}>
+          <Button size="xl" disabled={pending} loading={pending} onClick={save}>
             {pending ? "Saving…" : "Save Delivery"}
           </Button>
         </>

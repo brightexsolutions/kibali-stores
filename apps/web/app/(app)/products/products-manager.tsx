@@ -82,7 +82,7 @@ export function ProductsManager({
                 <Button variant="ghost" size="sm" onClick={() => setModal({ current: p })}>
                   Edit
                 </Button>
-                <Button variant="ghost" size="sm" disabled={pending} onClick={() => toggleActive(p)}>
+                <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => toggleActive(p)}>
                   {p.is_active ? "Retire" : "Activate"}
                 </Button>
               </Td>
@@ -151,7 +151,7 @@ export function ProductsManager({
                 <Input id="p-buffer" name="reorder_buffer_days" type="number" inputMode="numeric" min={1} defaultValue={modal.current?.reorder_buffer_days ?? 3} required />
               </div>
             </div>
-            <Button type="submit" size="lg" disabled={pending}>
+            <Button type="submit" size="lg" disabled={pending} loading={pending}>
               {pending ? "Saving…" : "Save product"}
             </Button>
           </form>

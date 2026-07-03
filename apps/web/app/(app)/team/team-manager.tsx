@@ -97,10 +97,10 @@ export function TeamManager({ rows, locations }: { rows: TeamRow[]; locations: L
             <Td className="whitespace-nowrap">
               {row.role !== "super_admin" && (
                 <>
-                  <Button variant="ghost" size="sm" disabled={pending} onClick={() => reset(row)}>
+                  <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => reset(row)}>
                     Reset password
                   </Button>
-                  <Button variant="ghost" size="sm" disabled={pending} onClick={() => toggleActive(row)}>
+                  <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => toggleActive(row)}>
                     {row.isActive ? "Deactivate" : "Activate"}
                   </Button>
                 </>
@@ -149,7 +149,7 @@ export function TeamManager({ rows, locations }: { rows: TeamRow[]; locations: L
               </Select>
             </div>
           )}
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" disabled={pending} loading={pending}>
             {pending ? "Creating…" : "Create account"}
           </Button>
         </form>

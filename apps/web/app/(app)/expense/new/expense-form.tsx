@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home, Wallet, Zap, MoreHorizontal } from "lucide-react";
 import type { ExpenseCategory } from "@kibali/shared";
 import { EXPENSE_LABELS, formatKES } from "@kibali/shared";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,12 @@ import { Label } from "@/components/ui/label";
 import { createExpense } from "@/app/actions/records";
 
 const CATEGORIES = Object.keys(EXPENSE_LABELS) as ExpenseCategory[];
+const CATEGORY_STYLE: Record<ExpenseCategory, { icon: typeof Home; tone: string }> = {
+  rent: { icon: Home, tone: "from-indigo-500 to-violet-600" },
+  salary: { icon: Wallet, tone: "from-emerald-500 to-teal-600" },
+  electricity: { icon: Zap, tone: "from-amber-400 to-orange-500" },
+  other: { icon: MoreHorizontal, tone: "from-slate-500 to-slate-700" },
+};
 
 export function ExpenseForm({
   locationId,
@@ -63,18 +69,25 @@ export function ExpenseForm({
         <div>
           <Label className="mb-2 block">What was it for?</Label>
           <div className="grid grid-cols-2 gap-2">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => pick(c)}
-                className={`h-14 rounded border-2 text-base font-semibold ${
-                  category === c ? "border-primary bg-accent" : "border-border bg-background"
-                }`}
-              >
-                {EXPENSE_LABELS[c]}
-              </button>
-            ))}
+            {CATEGORIES.map((c) => {
+              const { icon: Icon, tone } = CATEGORY_STYLE[c];
+              const active = category === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => pick(c)}
+                  className={`flex h-20 flex-col items-center justify-center gap-1 rounded text-sm font-semibold transition-transform active:scale-[0.98] ${
+                    active
+                      ? `bg-gradient-to-br ${tone} text-white shadow-md`
+                      : "border-2 border-border bg-background text-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {EXPENSE_LABELS[c]}
+                </button>
+              );
+            })}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             Spoiled stock? Use <strong>Spoiled / Lost</strong> on the home screen instead.
@@ -102,7 +115,7 @@ export function ExpenseForm({
           <Input id="e-desc" name="description" placeholder="e.g. June rent" />
         </div>
 
-        <Button type="submit" size="xl" disabled={pending}>
+        <Button type="submit" size="xl" disabled={pending} loading={pending}>
           {pending ? "Saving…" : "Save"}
         </Button>
       </form>

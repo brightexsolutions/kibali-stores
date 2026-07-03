@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Brightex standard: rounded (4px) baked in — never rounded-lg or larger.
@@ -35,15 +36,23 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  /** Shows a spinner and disables the button — the whole app's "action in progress" state. */
+  loading?: boolean;
+}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
+  ({ className, variant, size, loading, disabled, children, ...props }, ref) => (
     <button
       className={cn(buttonVariants({ variant, size, className }))}
       ref={ref}
+      disabled={disabled || loading}
+      aria-busy={loading}
       {...props}
-    />
+    >
+      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {children}
+    </button>
   )
 );
 Button.displayName = "Button";

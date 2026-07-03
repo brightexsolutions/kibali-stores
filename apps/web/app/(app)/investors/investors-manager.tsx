@@ -212,10 +212,10 @@ export function InvestorsManager({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button size="sm" disabled={pending} onClick={() => settle(a.id, "disbursed")}>
+                    <Button size="sm" disabled={pending} loading={pending} onClick={() => settle(a.id, "disbursed")}>
                       <HandCoins className="h-4 w-4" /> Disburse
                     </Button>
-                    <Button size="sm" variant="outline" disabled={pending} onClick={() => settle(a.id, "returned_to_business")}>
+                    <Button size="sm" variant="outline" disabled={pending} loading={pending} onClick={() => settle(a.id, "returned_to_business")}>
                       <Undo2 className="h-4 w-4" /> Return to business
                     </Button>
                   </div>
@@ -285,7 +285,7 @@ export function InvestorsManager({
                 <Button variant="outline" size="sm" onClick={() => copyLink(s.investor_id)}>
                   <Copy className="h-4 w-4" /> Copy link
                 </Button>
-                <Button variant="outline" size="sm" disabled={pending} onClick={() => newLink(s.investor_id)}>
+                <Button variant="outline" size="sm" disabled={pending} loading={pending} onClick={() => newLink(s.investor_id)}>
                   <RefreshCcw className="h-4 w-4" /> New link
                 </Button>
               </div>
@@ -309,7 +309,7 @@ export function InvestorsManager({
             <Label htmlFor="i-phone">Phone (optional)</Label>
             <Input id="i-phone" name="phone" inputMode="tel" />
           </div>
-          <Button type="submit" size="lg" disabled={pending}>
+          <Button type="submit" size="lg" disabled={pending} loading={pending}>
             {pending ? "Saving…" : "Save investor"}
           </Button>
         </form>
@@ -348,7 +348,7 @@ export function InvestorsManager({
               <Label htmlFor="c-notes">Note (optional)</Label>
               <Input id="c-notes" name="notes" />
             </div>
-            <Button type="submit" size="lg" disabled={pending}>
+            <Button type="submit" size="lg" disabled={pending} loading={pending}>
               {pending ? "Saving…" : "Record investment"}
             </Button>
           </form>

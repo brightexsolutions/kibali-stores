@@ -1,13 +1,5 @@
 import Link from "next/link";
-import {
-  Banknote,
-  Building2,
-  ChevronRight,
-  PackagePlus,
-  Send,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { Building2, ChevronRight, TrendingUp, Truck, Wallet } from "lucide-react";
 import type {
   DailyLocationSummary,
   DeliveryProgress,
@@ -26,13 +18,6 @@ import { BatchStrip } from "@/components/batch-strip";
 import { DayBrief } from "@/components/day-brief";
 import { StatCard } from "@/components/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const QUICK_LINKS = [
-  { href: "/sale/new", label: "Record a Sale", icon: ShoppingCart },
-  { href: "/delivery/new", label: "Stock Arrived", icon: PackagePlus },
-  { href: "/distribute", label: "Send Stock", icon: Send },
-  { href: "/investors", label: "Investors", icon: Users },
-];
 
 export default async function DashboardPage() {
   const member = await requireOwner();
@@ -85,19 +70,27 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <StatCard title="Money in this month" value={formatKES(thisMonth.sales)} hint="all sales across every shop" />
-        <StatCard title="Money spent this month" value={formatKES(thisMonth.spent)} hint="expenses + spoiled stock" />
+        <StatCard
+          title="Money in this month"
+          value={formatKES(thisMonth.sales)}
+          hint="all sales, every shop"
+          tone="info"
+          icon={Wallet}
+        />
         <StatCard
           title="Profit banked"
           value={formatKES(profitBanked)}
-          hint="from supplies that finished selling"
+          hint="supplies that finished selling"
           tone="primary"
+          icon={TrendingUp}
         />
+        <StatCard title="Money spent this month" value={formatKES(thisMonth.spent)} hint="expenses + spoiled stock" />
         <StatCard
           title="Owed to suppliers"
           value={formatKES(totalOwed)}
-          hint={totalOwed > 0 ? "tap Suppliers below to see who" : "nothing outstanding"}
+          hint={totalOwed > 0 ? "tap Suppliers to see who" : "nothing outstanding"}
           tone={totalOwed > 0 ? "warn" : "default"}
+          icon={Truck}
         />
       </div>
 
@@ -168,40 +161,6 @@ export default async function DashboardPage() {
           </p>
         )}
       </section>
-
-      <div className="grid grid-cols-2 gap-2">
-        {QUICK_LINKS.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex h-16 items-center justify-center gap-2 rounded border bg-background font-semibold hover:bg-muted"
-          >
-            <Icon className="h-5 w-5" /> {label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        {[
-          ["/suppliers", "Suppliers & what's owed"],
-          ["/products", "Products & prices"],
-          ["/team", "Team accounts"],
-          ["/activity", "Activity log"],
-          ["/settings", "Businesses & shops"],
-          ["/stock", "Main store stock"],
-        ].map(([href, label]) => (
-          <Link key={href} href={href} className="rounded border bg-background p-3 text-center hover:bg-muted">
-            {label}
-          </Link>
-        ))}
-      </div>
-
-      <Link
-        href="/expense/new"
-        className="flex items-center justify-center gap-2 rounded border bg-background p-3 text-sm hover:bg-muted"
-      >
-        <Banknote className="h-4 w-4" /> Record money spent
-      </Link>
     </div>
   );
 }

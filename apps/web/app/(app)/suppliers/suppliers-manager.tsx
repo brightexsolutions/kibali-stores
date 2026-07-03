@@ -119,7 +119,7 @@ export function SuppliersManager({
               <Label htmlFor="s-notes">Notes (optional)</Label>
               <Textarea id="s-notes" name="notes" defaultValue={modal.current?.notes ?? ""} />
             </div>
-            <Button type="submit" size="lg" disabled={pending}>
+            <Button type="submit" size="lg" disabled={pending} loading={pending}>
               {pending ? "Saving…" : "Save supplier"}
             </Button>
           </form>

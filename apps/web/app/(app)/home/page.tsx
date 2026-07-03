@@ -1,26 +1,21 @@
 import Link from "next/link";
-import {
-  Banknote,
-  ClipboardList,
-  PackagePlus,
-  ShoppingCart,
-  Snowflake,
-} from "lucide-react";
+import { Banknote, PackagePlus, Snowflake, TrendingUp, Wallet } from "lucide-react";
 import type { DailyLocationSummary, ReorderStatus, StockLevel } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
 import { requireMember } from "@/lib/auth";
 import { resolveLocation } from "@/lib/location";
 import { createClient } from "@/lib/supabase/server";
 import { greeting } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
 import { DayBrief } from "@/components/day-brief";
 import { LocationPicker } from "@/components/location-picker";
+import { StatCard } from "@/components/stat-card";
 
-const BIG_BUTTONS = [
-  { href: "/sale/new", label: "Record a Sale", icon: ShoppingCart, tone: "bg-primary text-primary-foreground" },
-  { href: "/expense/new", label: "Money Spent", icon: Banknote, tone: "bg-background" },
-  { href: "/delivery/new", label: "Stock Arrived", icon: PackagePlus, tone: "bg-background" },
-  { href: "/loss/new", label: "Spoiled / Lost", icon: Snowflake, tone: "bg-background" },
+// Sale, Stock and Today already live in the bottom nav — these are the
+// less-frequent actions that still deserve one tap from Home.
+const QUICK_LINKS = [
+  { href: "/expense/new", label: "Money Spent", icon: Banknote },
+  { href: "/delivery/new", label: "Stock Arrived", icon: PackagePlus },
+  { href: "/loss/new", label: "Spoiled / Lost", icon: Snowflake },
 ];
 
 export default async function HomePage({
@@ -74,35 +69,35 @@ export default async function HomePage({
 
       {location && (
         <>
-          <Card>
-            <CardContent className="grid grid-cols-3 gap-2 p-4 text-center">
-              <div>
-                <div className="text-xs text-muted-foreground">Sales today</div>
-                <div className="text-lg font-bold">{formatKES(todaySummary?.sales_total ?? 0)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Spent today</div>
-                <div className="text-lg font-bold">
-                  {formatKES((todaySummary?.cash_expenses ?? 0) + (todaySummary?.loss_value ?? 0))}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Profit today</div>
-                <div className="text-lg font-bold text-primary">
-                  {formatKES(todaySummary?.actual_profit ?? 0)}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-3 gap-2">
+            <StatCard
+              title="Sales today"
+              value={formatKES(todaySummary?.sales_total ?? 0)}
+              tone="info"
+              icon={Wallet}
+            />
+            <StatCard
+              title="Spent today"
+              value={formatKES((todaySummary?.cash_expenses ?? 0) + (todaySummary?.loss_value ?? 0))}
+              tone="warn"
+              icon={Banknote}
+            />
+            <StatCard
+              title="Profit today"
+              value={formatKES(todaySummary?.actual_profit ?? 0)}
+              tone="primary"
+              icon={TrendingUp}
+            />
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {BIG_BUTTONS.map(({ href, label, icon: Icon, tone }) => (
+          <div className="grid grid-cols-3 gap-2">
+            {QUICK_LINKS.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={`${href}${q}`}
-                className={`flex h-[88px] flex-col items-center justify-center gap-1 rounded border text-base font-semibold shadow-sm active:scale-[0.99] ${tone}`}
+                className="flex h-20 flex-col items-center justify-center gap-1.5 rounded border bg-background text-xs font-semibold shadow-sm active:scale-[0.98]"
               >
-                <Icon className="h-6 w-6" />
+                <Icon className="h-5 w-5 text-primary" />
                 {label}
               </Link>
             ))}
@@ -115,13 +110,6 @@ export default async function HomePage({
             alerts={alerts}
             locationQuery={q}
           />
-
-          <Link
-            href={`/today${q}`}
-            className="flex items-center justify-center gap-2 rounded border bg-background p-4 font-medium hover:bg-muted"
-          >
-            <ClipboardList className="h-5 w-5" /> Today&apos;s Records
-          </Link>
         </>
       )}
     </div>

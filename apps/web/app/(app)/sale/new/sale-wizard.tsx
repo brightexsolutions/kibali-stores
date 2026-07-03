@@ -3,9 +3,10 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Box, Minus, PackageOpen, Plus, Tag } from "lucide-react";
 import type { Product, SaleType, StockLevel } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -107,8 +108,8 @@ export function SaleWizard({
           <p className="text-sm text-muted-foreground">How is this sale?</p>
           {(
             [
-              { value: "wholesale", title: "Whole boxes", sub: "Wholesale — selling full boxes" },
-              { value: "retail", title: "Single pieces", sub: "Retail — one ice pop, one packet…" },
+              { value: "wholesale", title: "Whole boxes", sub: "Wholesale — selling full boxes", icon: Box, tone: "from-emerald-500 to-teal-600" },
+              { value: "retail", title: "Single pieces", sub: "Retail — one ice pop, one packet…", icon: PackageOpen, tone: "from-sky-500 to-blue-600" },
             ] as const
           ).map((option) => (
             <button
@@ -119,12 +120,15 @@ export function SaleWizard({
                 setPrices({});
                 setStep("items");
               }}
-              className={`rounded border-2 p-6 text-left ${
-                mode === option.value ? "border-primary bg-accent" : "border-border bg-background"
-              }`}
+              className="flex items-center gap-4 rounded border-2 border-border bg-background p-5 text-left active:scale-[0.99]"
             >
-              <div className="text-lg font-bold">{option.title}</div>
-              <div className="text-sm text-muted-foreground">{option.sub}</div>
+              <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${option.tone} text-white`}>
+                <option.icon className="h-7 w-7" />
+              </span>
+              <div>
+                <div className="text-lg font-bold">{option.title}</div>
+                <div className="text-sm text-muted-foreground">{option.sub}</div>
+              </div>
             </button>
           ))}
         </div>
@@ -181,44 +185,82 @@ export function SaleWizard({
       {step === "confirm" && (
         <>
           <p className="text-sm text-muted-foreground">
-            Check everything, change a price if you agreed a different one.
+            {isBox
+              ? "Check everything. Buying many boxes, or bargained? Give a better price below."
+              : "Check everything, change a price if you agreed a different one."}
           </p>
           <div className="flex flex-col gap-2">
-            {lines.map((l) => (
-              <Card key={l.product.id}>
-                <CardContent className="flex items-center justify-between gap-3 p-3">
-                  <div>
-                    <div className="font-semibold">
-                      {l.quantity} × {l.product.name}
+            {lines.map((l) => {
+              const list = defaultPrice(l.product);
+              const bargained = l.unitPrice < list;
+              return (
+                <Card key={l.product.id} className={bargained ? "border-amber-300" : ""}>
+                  <CardContent className="flex flex-col gap-2 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold">
+                          {l.quantity} × {l.product.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {isBox ? l.product.unit_name : l.product.piece_name}s @{" "}
+                          {formatKES(l.unitPrice)} = <strong>{formatKES(l.total)}</strong>
+                        </div>
+                      </div>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="0.01"
+                        aria-label={`Price for ${l.product.name}`}
+                        className="w-24 text-right"
+                        value={l.unitPrice}
+                        onChange={(e) =>
+                          setPrices((prev) => ({ ...prev, [l.product.id]: Number(e.target.value) || 0 }))
+                        }
+                      />
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {isBox ? l.product.unit_name : l.product.piece_name}s @{" "}
-                      {formatKES(l.unitPrice)} = <strong>{formatKES(l.total)}</strong>
-                    </div>
-                  </div>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step="0.01"
-                    aria-label={`Price for ${l.product.name}`}
-                    className="w-24 text-right"
-                    value={l.unitPrice}
-                    onChange={(e) =>
-                      setPrices((prev) => ({ ...prev, [l.product.id]: Number(e.target.value) || 0 }))
-                    }
-                  />
-                </CardContent>
-              </Card>
-            ))}
+                    {isBox && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Quick price:</span>
+                        {[0, 5, 10, 20].map((cut) => {
+                          const candidate = list - cut;
+                          const active = l.unitPrice === candidate;
+                          return (
+                            <button
+                              key={cut}
+                              type="button"
+                              onClick={() =>
+                                setPrices((prev) => ({ ...prev, [l.product.id]: candidate }))
+                              }
+                              className={`rounded px-2 py-1 text-xs font-semibold ${
+                                active
+                                  ? "bg-amber-500 text-white"
+                                  : "bg-muted text-muted-foreground hover:bg-muted/70"
+                              }`}
+                            >
+                              {cut === 0 ? "Full price" : `-${cut}`}
+                            </button>
+                          );
+                        })}
+                        {bargained && (
+                          <Badge variant="warn" className="ml-auto gap-1">
+                            <Tag className="h-3 w-3" /> Bargained (full price {formatKES(list)})
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-          <Card className="bg-accent">
+          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
             <CardContent className="flex items-center justify-between p-4">
               <span className="font-semibold">Total</span>
-              <span className="text-xl font-bold">{formatKES(grandTotal)}</span>
+              <span className="text-2xl font-bold">{formatKES(grandTotal)}</span>
             </CardContent>
           </Card>
-          <Button size="xl" disabled={pending} onClick={save}>
+          <Button size="xl" loading={pending} onClick={save}>
             {pending ? "Saving…" : "Save Sale"}
           </Button>
         </>
