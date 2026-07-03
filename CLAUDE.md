@@ -23,7 +23,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 ## Current status / next step
 
 - ✅ M0 verified 2026-07-03: build clean, `/api/health` responds in Brightex shape, unauthenticated routes 307 → `/login`, `/login` renders. `apps/web/.env.local` currently holds PLACEHOLDER Supabase values.
-- M1 in progress: `supabase/migrations/001_schema.sql`, `002_rls.sql`, `003_views.sql` written (untested — no Supabase project yet). **Next:** seed script, then run migrations against the real project and do the M1 RLS/stock verification.
+- M1 in progress: `supabase/migrations/001_schema.sql`, `002_rls.sql`, `003_views.sql` and `scripts/seed.ts` all written (untested — no Supabase project yet). **Next:** run migrations 001→003 in the Supabase SQL editor, `npm run seed`, then the M1 verification pass (manager RLS isolation, finished-batch profit = KSh 780 on seed delivery 1, partial payment 5,000/7,600 on delivery 2).
 - **Blocked on user:** create the Supabase project and put real `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` in `apps/web/.env.local`. Migrations can then be run in the Supabase SQL editor in order (001 → 002 → 003).
 - Note: `@next/swc-darwin-arm64` is pinned as a devDependency (npm skipped optional deps in this environment; Next needs the native binary to build).
 

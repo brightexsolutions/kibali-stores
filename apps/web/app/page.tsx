@@ -1,18 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionMember } from "@/lib/auth";
 
-/**
- * Role router: managers → /home, owners & super admin → /dashboard.
- * Until the members table lands (M1), any signed-in user sees the welcome stub.
- */
+/** Role router: managers → /home, owners & super admin → /dashboard. */
 export default async function RootPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  // M1 will read the member role here and redirect to /home or /dashboard.
-  redirect("/welcome");
+  const member = await getSessionMember();
+  if (!member) redirect("/welcome"); // middleware already bounced signed-out users to /login
+  if (member.mustChangePassword) redirect("/account/password");
+  redirect(member.role === "manager" ? "/home" : "/dashboard");
 }
