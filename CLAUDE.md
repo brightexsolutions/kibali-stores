@@ -12,21 +12,26 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 | # | Milestone | Status |
 |---|-----------|--------|
 | M0 | Scaffold & foundations (monorepo, UI base, Supabase clients, middleware, /login, /api/health, CLAUDE.md) | ✅ COMPLETE (2026-07-03) |
-| M1 | Database (schema + GRANTs, RLS, views incl. FIFO batch view, seed) | 🔨 CODE DONE — awaiting SQL run + live verification (see below) |
-| M2 | Setup screens (/settings, /products, /suppliers, /team account creation) | ✅ CODE COMPLETE (2026-07-03) — live verification pending DB |
-| M3 | Record flows (/home, /sale/new, /expense/new, /delivery/new, /loss/new, /today, /distribute) + day-start brief | ✅ CODE COMPLETE (2026-07-03) — live verification pending DB |
-| M4 | Stock, batches & supplier money (+ reorder alerts & order suggestions) | ✅ CODE COMPLETE (2026-07-03) — live verification pending DB |
-| M5 | Owner dashboards (roll-ups, Recharts, Profit Banked, batch strip) | ✅ CODE COMPLETE (2026-07-03) — live verification pending DB |
-| M6 | Investors, capital & profit distribution (+ /i/[token] links, /activity) | ✅ CODE COMPLETE (2026-07-03) — live verification pending DB |
+| M1 | Database (schema + GRANTs, RLS, views incl. FIFO batch view, seed) | ✅ COMPLETE & VERIFIED LIVE (2026-07-03) |
+| M2 | Setup screens (/settings, /products, /suppliers, /team account creation) | ✅ COMPLETE (2026-07-03) — DB live, screens not yet click-tested in browser |
+| M3 | Record flows (/home, /sale/new, /expense/new, /delivery/new, /loss/new, /today, /distribute) + day-start brief | ✅ COMPLETE (2026-07-03) — DB live, screens not yet click-tested in browser |
+| M4 | Stock, batches & supplier money (+ reorder alerts & order suggestions) | ✅ COMPLETE (2026-07-03) — data verified live via SQL, screens not yet click-tested |
+| M5 | Owner dashboards (roll-ups, Recharts, Profit Banked, batch strip) | ✅ COMPLETE (2026-07-03) — data verified live via SQL, screens not yet click-tested |
+| M6 | Investors, capital & profit distribution (+ /i/[token] links, /activity) | ✅ COMPLETE (2026-07-03) — data verified live via SQL, screens not yet click-tested |
 | M7 | Help, polish, PWA, favicon | ✅ CODE COMPLETE (2026-07-03) — deploy steps below |
 
 ## Current status / next step
 
-**All milestone code is written, builds clean, and is pushed to `main`.** The Supabase project exists and env keys are in `apps/web/.env.local` (real values, not committed). Remaining sequence:
+**Database is LIVE and verified.** Godwin ran migrations 001→003 in the Supabase SQL editor on 2026-07-03. Seed ran successfully (`npm run seed`). Verified directly against the live DB (SQL queries, not yet through the browser UI):
 
-1. **Godwin runs migrations** in the Supabase SQL editor, in order: `supabase/migrations/001_schema.sql` → `002_rls.sql` → `003_views.sql` (he chose to paste SQL himself).
-2. Then run `npm run seed` and the **live verification pass**: manager RLS isolation (manager.a sees only Tala), seed delivery 1 shows **Finished, realized profit KSh 780**, delivery 2 shows **"Paid 5,000 of 7,600"** with Main store holding 4 boxes and Kangundo 5 boxes + 20 pieces of lollies, dashboard roll-ups match SQL, investor pages + audit log populate.
-3. **Launch (M7 remainder):** Vercel deploy (root dir `apps/web`), env vars in Vercel, cron-job.com job pinging `https://<domain>/api/health` every 1–3 days (keeps Supabase awake), register the endpoint on the Brightex website project-health dashboard, clear seed data, create real accounts in /team, enter real products with the parents.
+- ✅ Delivery 1 (Tala, ice pops): `v_delivery_progress` shows `status=finished`, `realized_profit=780` — exact hand-check match.
+- ✅ Delivery 2 (central lollies): `v_delivery_summary` shows `payment_status=partially_paid`, `paid=5000`, `owed=2600` of `total=7600`. Stock reconciles: Main store 160 pieces (4 boxes), Tala 160 pieces (4 boxes), Kangundo 220 pieces (5 boxes + 20 loose) — sums to 540 = total_pieces(800) − consumed(260). Note: `realized_profit` on this delivery reads **-4,500 while still selling** — this is correct, not a bug: the formula charges the *whole* batch cost against only the revenue collected *so far*, so it's negative until enough of the batch sells to cover cost, then climbs positive and gets banked at "Finished". Worth knowing so it doesn't look alarming on the dashboard mid-batch.
+- ✅ `v_investor_summary`: Mama 48%, Baba 32%, Godwin 20% (capital-proportional, sums to 100%).
+- ✅ RLS: manager.a (Tala) sees only their own location's sales (7 rows, 1 location_id), zero rows from `investors`/`audit_logs`, exactly their own `members` row. Write to Kangundo blocked by RLS policy; write to their own shop (Tala) succeeds.
+
+**Not yet done:** clicking through the actual pages in a browser (dev server / deployed) — verification so far is SQL-level via the service-role and anon clients, not through the Next.js UI. **Next steps:**
+1. Click-test the flows in a browser: log in as each seeded user, run through sale/expense/delivery/loss/distribute, dashboards, investors, `/i/[token]`, `/help`.
+2. **Launch (M7 remainder):** Vercel deploy (root dir `apps/web`), env vars in Vercel, cron-job.com job pinging `https://<domain>/api/health` every 1–3 days (keeps Supabase awake), register the endpoint on the Brightex website project-health dashboard, clear seed data, create real accounts in /team, enter real products with the parents.
 
 **Seed test logins** (password `KibaliTest!2026`): godwin@kibali.test (super admin), parent@kibali.test (owner), manager.a@kibali.test (Tala), manager.b@kibali.test (Kangundo).
 
