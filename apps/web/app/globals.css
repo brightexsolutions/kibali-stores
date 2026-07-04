@@ -47,6 +47,12 @@
     @apply border-border;
   }
 
+  html {
+    /* Parents/novice users first: bigger base than the browser default (16px)
+       scales every rem-based Tailwind text size (xs/sm/base/lg...) up together. */
+    font-size: 112.5%; /* 18px base */
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     /* phones first: never let iOS zoom on input focus */

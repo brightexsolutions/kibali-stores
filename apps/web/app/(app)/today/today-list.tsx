@@ -81,7 +81,7 @@ export function TodayList({
               <CardContent className="flex items-center justify-between p-3">
                 <div>
                   <div className="font-semibold">{formatKES(s.total_amount)}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     {s.sale_type === "wholesale" ? "Whole boxes" : "Single pieces"} · profit{" "}
                     {formatKES(s.profit)}
                   </div>
@@ -103,7 +103,7 @@ export function TodayList({
               <CardContent className="flex items-center justify-between p-3">
                 <div>
                   <div className="font-semibold">{formatKES(e.amount)}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     {EXPENSE_LABELS[e.category]}
                     {e.description ? ` — ${e.description}` : ""}
                   </div>
@@ -127,7 +127,7 @@ export function TodayList({
                   <div className="font-semibold">
                     {l.quantity} {l.unit_level === "box" ? "box(es)" : "piece(s)"} — {l.product_name}
                   </div>
-                  <div className="text-xs text-muted-foreground">{l.reason}</div>
+                  <div className="text-sm text-muted-foreground">{l.reason}</div>
                 </div>
                 <Button variant="ghost" size="icon" aria-label="Remove loss" disabled={pending} onClick={() => remove("stock_losses", l.id, "loss")}>
                   <Trash2 className="h-4 w-4 text-muted-foreground" />
@@ -146,7 +146,7 @@ export function TodayList({
               <CardContent className="flex items-center justify-between p-3">
                 <div>
                   <div className="font-semibold">{formatKES(d.total_cost)}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     {d.payment_status === "paid"
                       ? "Paid in full"
                       : d.payment_status === "partially_paid"

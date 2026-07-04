@@ -32,14 +32,14 @@ export function StatCard({
       )}
     >
       <div className="flex items-center justify-between">
-        <div className={cn("text-xs", gradient ? "text-white/80" : "text-muted-foreground")}>
+        <div className={cn("text-sm", gradient ? "text-white/80" : "text-muted-foreground")}>
           {title}
         </div>
         {Icon && <Icon className={cn("h-4 w-4", gradient ? "text-white/70" : "text-muted-foreground")} />}
       </div>
-      <div className="text-xl font-bold">{value}</div>
+      <div className="text-2xl font-bold">{value}</div>
       {hint && (
-        <div className={cn("text-xs", gradient ? "text-white/80" : "text-muted-foreground")}>{hint}</div>
+        <div className={cn("text-sm", gradient ? "text-white/80" : "text-muted-foreground")}>{hint}</div>
       )}
     </div>
   );

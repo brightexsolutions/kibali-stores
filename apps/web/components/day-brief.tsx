@@ -33,7 +33,7 @@ export function DayBrief({
           <div className="rounded border bg-background p-3">
             <div className="text-muted-foreground">Yesterday&apos;s sales</div>
             <div className="text-lg font-bold">{formatKES(yesterday?.sales_total ?? 0)}</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               profit {formatKES(yesterday?.actual_profit ?? 0)}
             </div>
           </div>
@@ -42,7 +42,7 @@ export function DayBrief({
               <PackageSearch className="h-3.5 w-3.5" /> Stock available
             </div>
             <div className="text-lg font-bold">{totalBoxes} boxes</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               across {stockLineCount} product{stockLineCount === 1 ? "" : "s"} — tap to see
             </div>
           </Link>
