@@ -97,6 +97,7 @@ export async function createSale(payload: unknown): Promise<ActionResult> {
   });
   revalidatePath("/home");
   revalidatePath("/today");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -135,6 +136,7 @@ export async function createExpense(formData: FormData): Promise<ActionResult> {
   });
   revalidatePath("/home");
   revalidatePath("/today");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -204,6 +206,7 @@ export async function createDelivery(payload: unknown): Promise<ActionResult> {
   revalidatePath("/home");
   revalidatePath("/today");
   revalidatePath("/suppliers");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -259,6 +262,7 @@ export async function createLoss(formData: FormData): Promise<ActionResult> {
   });
   revalidatePath("/home");
   revalidatePath("/today");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -296,6 +300,8 @@ export async function createDistribution(payload: unknown): Promise<ActionResult
   });
   revalidatePath("/distribute");
   revalidatePath("/stock");
+  revalidatePath("/home");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -333,6 +339,7 @@ export async function addSupplierPayment(formData: FormData): Promise<ActionResu
     amount: input.amount,
   });
   revalidatePath("/suppliers");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -362,5 +369,6 @@ export async function softDeleteRecord(table: string, id: string): Promise<Actio
   await logAction(supabase, member.userId, `${table}.removed`, table, id);
   revalidatePath("/today");
   revalidatePath("/home");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
