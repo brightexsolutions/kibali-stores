@@ -47,7 +47,7 @@ export const accountSchema = z.object({
   full_name: z.string().trim().min(1, "Enter the person's name").max(120),
   email: z.string().trim().email("Enter a valid email"),
   phone: z.string().trim().max(30).optional().or(z.literal("")),
-  role: z.enum(["owner", "manager"]),
+  role: z.enum(["owner", "manager", "super_admin"]),
   location_id: uuid.optional().or(z.literal("")),
 }).refine((v) => v.role !== "manager" || !!v.location_id, {
   message: "A shop manager needs a shop",

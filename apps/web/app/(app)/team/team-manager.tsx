@@ -29,7 +29,7 @@ export interface TeamRow {
 export function TeamManager({ rows, locations }: { rows: TeamRow[]; locations: Location[] }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
-  const [role, setRole] = useState<"owner" | "manager">("manager");
+  const [role, setRole] = useState<MemberRole>("manager");
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -130,10 +130,11 @@ export function TeamManager({ rows, locations }: { rows: TeamRow[]; locations: L
               id="t-role"
               name="role"
               value={role}
-              onChange={(e) => setRole(e.target.value as "owner" | "manager")}
+              onChange={(e) => setRole(e.target.value as MemberRole)}
             >
               <option value="manager">Shop Manager — one shop only</option>
               <option value="owner">Owner — sees everything</option>
+              <option value="super_admin">Super Admin — full system control</option>
             </Select>
           </div>
           {role === "manager" && (

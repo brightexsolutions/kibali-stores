@@ -47,6 +47,7 @@ Godwin is considering turning this from a single-family app into a **leasable mu
 | M16 | Stock Arrived / Send Stock promoted to top of /dashboard | ✅ COMPLETE (2026-07-04) |
 | M17 | "All shops" combined stock view (was one-shop-at-a-time only) | ✅ COMPLETE (2026-07-04) |
 | M18 | Fixed favicon 500 error (conflicting app/icon.svg + public/icon.svg) | ✅ COMPLETE (2026-07-04) |
+| M19 | Bootstrap super-admin script, clear-test-data script, /team now supports creating a super_admin, account-creation guide | ✅ COMPLETE (2026-07-04) |
 
 ## Current status / next step
 
@@ -103,6 +104,8 @@ Godwin is considering turning this from a single-family app into a **leasable mu
 - **"All shops" combined stock view (2026-07-04):** `/stock` previously forced owners to pick exactly one shop or Main store at a time — no way to see everything at once. `LocationPicker` gained an `allowAll` prop rendering an "All shops" card that sets `?location=all`; `/stock/page.tsx` handles that value as its own branch (checked before the normal `resolveLocation` flow) — fetches all `v_stock_levels` rows unfiltered, groups them by `location_id` client-side (via `listAccessibleLocations`), and renders one section per shop plus a Main store section, each using the same `StockRow` card. Owner/super_admin only, same as the rest of the location picker.
 - **Favicon fix (2026-07-04, real bug, not caching):** `app/icon.svg` (Next's auto-route metadata convention) and `public/icon.svg`/`public/icon-512.png` (referenced by `manifest.ts`) both resolved to the same `/icon.svg` URL — Next.js refuses this ("conflicting public file and page file") and served a 500 for the favicon request, so **no** favicon showed in any browser, including incognito (this masqueraded as a caching issue at first). Fixed by deleting `app/icon.svg` and referencing the `public/` files explicitly via `metadata.icons` in the root layout instead. **Lesson: never place a file in both `app/` (Next metadata-file convention) and `public/` at the same resulting URL** — pick one mechanism per icon.
 - **FinTrack is reference-only** — never copy its code.
+- **Account creation & the super-admin bootstrap problem (2026-07-04):** every account (owner, manager, and now super_admin too) can be created in-app at `/team` — but that flow requires already being logged in as a super admin, so it can't create the very *first* one. `accountSchema` (`packages/shared/validations/index.ts`) and the `/team` role picker (`team-manager.tsx`) now include `"super_admin"` as a selectable role (location field still only shows for `"manager"`); `createAccount` (`app/actions/team.ts`) needed no change since it already inserted whatever role the schema validated. For the first-ever super admin (or a fresh database), use `scripts/create-super-admin.ts` (`npm run create-super-admin -- "Full Name" "email@example.com" "+254..."`) which talks to Supabase directly via the service-role key, bypassing the app entirely. See the full guide below.
+- **`scripts/clear-test-data.ts` (2026-07-04, NOT YET RUN):** wipes every business record and every user account in FK-safe order, gated behind a required `--yes-i-am-sure` flag (`npm run clear-data -- --yes-i-am-sure`). Written for the pre-launch "remove seed data" step in M7 but deliberately not executed — run it only when ready to hand the real app to the parents, then immediately run `create-super-admin` since no one will be able to log in otherwise.
 
 ## Architecture & conventions
 
@@ -128,6 +131,26 @@ Godwin is considering turning this from a single-family app into a **leasable mu
 npm install          # root — installs all workspaces
 npm run dev          # Next.js dev server (apps/web)
 npm run build        # production build (apps/web)
-npm run seed         # seed demo data (AFTER migrations are run)
+npm run seed                 # seed demo data (AFTER migrations are run)
+npm run create-super-admin -- "Full Name" "email@x.com" "+254..."  # bootstrap the first super admin
+npm run clear-data -- --yes-i-am-sure   # DESTRUCTIVE: wipe all data before real launch (NOT YET RUN)
 curl localhost:3000/api/health
 ```
+
+## Guide: how accounts get created
+
+**Every account except the very first super admin** is created inside the app:
+1. Log in as a super admin → `/team` → **Create an account**.
+2. Fill in name, email, phone (optional), and pick a role: **Shop Manager** (must also pick which shop), **Owner** (sees everything), or **Super Admin** (full system control — can also do everything this guide describes).
+3. The app shows a **temporary password once** — copy it and share it with that person directly (WhatsApp/in person). They're forced to set their own password on first login.
+4. Deactivate/reactivate or reset anyone's password from the same `/team` list at any time.
+
+**The very first super admin** can't be created this way — `/team` requires already being logged in as one. Bootstrap it once, directly against Supabase, with:
+
+```bash
+npm run create-super-admin -- "Godwin Brown" "godwin@realaddress.com" "+2547..."
+```
+
+This prints a temp password the same way the in-app flow does. Log in with it, change the password when prompted, and from then on use `/team` for every other account — including any additional super admins.
+
+If the database is ever wiped clean via `npm run clear-data` (pre-launch reset), run `create-super-admin` again immediately afterward — with zero accounts left, nothing can log in to reach `/team` until that first one exists.

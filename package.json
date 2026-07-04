@@ -10,7 +10,9 @@
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web",
     "lint": "npm run lint --workspace=apps/web",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "clear-data": "tsx scripts/clear-test-data.ts",
+    "create-super-admin": "tsx scripts/create-super-admin.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2"
