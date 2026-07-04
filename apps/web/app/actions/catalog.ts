@@ -82,6 +82,55 @@ export async function saveLocation(
   return { ok: true };
 }
 
+/** Soft delete — the shop and all its history stay in the database, just hidden from active lists. */
+export async function deleteLocation(id: string): Promise<ActionResult> {
+  const member = await requireOwnerAction();
+  if (!member) return { ok: false, error: "Only owners can do this." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("locations")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) {
+    console.error("[catalog.deleteLocation]", error.message);
+    return { ok: false, error: "Could not remove the shop. Try again." };
+  }
+
+  await logAction(supabase, member.userId, "location.deleted", "location", id);
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/** Soft delete — cascades to the business's own shops so nothing is left orphaned in the active UI. Records stay intact. */
+export async function deleteBusiness(id: string): Promise<ActionResult> {
+  const member = await requireOwnerAction();
+  if (!member) return { ok: false, error: "Only owners can do this." };
+
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+
+  const { error: locError } = await supabase
+    .from("locations")
+    .update({ deleted_at: now })
+    .eq("business_id", id)
+    .is("deleted_at", null);
+  if (locError) {
+    console.error("[catalog.deleteBusiness] locations", locError.message);
+    return { ok: false, error: "Could not remove the business's shops. Try again." };
+  }
+
+  const { error } = await supabase.from("businesses").update({ deleted_at: now }).eq("id", id);
+  if (error) {
+    console.error("[catalog.deleteBusiness]", error.message);
+    return { ok: false, error: "Could not remove the business. Try again." };
+  }
+
+  await logAction(supabase, member.userId, "business.deleted", "business", id);
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
 // ---------- suppliers ----------
 export async function saveSupplier(
   formData: FormData,

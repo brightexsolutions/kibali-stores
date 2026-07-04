@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Pencil, Store } from "lucide-react";
+import { Plus, Pencil, Store, Trash2 } from "lucide-react";
 import type { Business, Location } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
-import { saveBusiness, saveLocation } from "@/app/actions/catalog";
+import { deleteBusiness, deleteLocation, saveBusiness, saveLocation } from "@/app/actions/catalog";
 
 type BusinessModal = { kind: "business"; current?: Business };
 type LocationModal = { kind: "location"; businessId: string; current?: Location };
@@ -47,6 +47,32 @@ export function SettingsManager({
     });
   }
 
+  function removeBusiness(b: Business) {
+    if (
+      !confirm(
+        `Remove "${b.name}" and all its shops? Past records stay safe, but they'll disappear from your active lists.`
+      )
+    )
+      return;
+    startTransition(async () => {
+      const result = await deleteBusiness(b.id);
+      if (!result.ok) return void toast.error(result.error);
+      toast.success("Business removed.");
+      router.refresh();
+    });
+  }
+
+  function removeLocation(l: Location) {
+    if (!confirm(`Remove "${l.name}"? Past records stay safe, but it'll disappear from active lists.`))
+      return;
+    startTransition(async () => {
+      const result = await deleteLocation(l.id);
+      if (!result.ok) return void toast.error(result.error);
+      toast.success("Shop removed.");
+      router.refresh();
+    });
+  }
+
   return (
     <>
       {businesses.length === 0 && (
@@ -68,30 +94,51 @@ export function SettingsManager({
                   <p className="mt-1 text-sm text-muted-foreground">{b.description}</p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`Edit ${b.name}`}
-                onClick={() => setModal({ kind: "business", current: b })}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Edit ${b.name}`}
+                  onClick={() => setModal({ kind: "business", current: b })}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Remove ${b.name}`}
+                  disabled={pending}
+                  onClick={() => removeBusiness(b)}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {shops.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => setModal({ kind: "location", businessId: b.id, current: l })}
-                  className="flex items-center justify-between rounded border bg-background p-3 text-left hover:bg-muted"
-                >
-                  <span className="flex items-center gap-2 font-medium">
-                    <Store className="h-4 w-4 text-muted-foreground" />
-                    {l.name}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {l.monthly_rent ? `Rent ${formatKES(l.monthly_rent)}/month` : "No rent set"}
-                  </span>
-                </button>
+                <div key={l.id} className="flex items-center gap-1">
+                  <button
+                    onClick={() => setModal({ kind: "location", businessId: b.id, current: l })}
+                    className="flex flex-1 items-center justify-between rounded border bg-background p-3 text-left hover:bg-muted"
+                  >
+                    <span className="flex items-center gap-2 font-medium">
+                      <Store className="h-4 w-4 text-muted-foreground" />
+                      {l.name}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {l.monthly_rent ? `Rent ${formatKES(l.monthly_rent)}/month` : "No rent set"}
+                    </span>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove ${l.name}`}
+                    disabled={pending}
+                    onClick={() => removeLocation(l)}
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               ))}
               <Button
                 variant="outline"
