@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
 // Routes that need no session
-const PUBLIC_PATHS = ["/login", "/api/health"];
+const PUBLIC_PATHS = ["/", "/login", "/api/health"];
 const PUBLIC_PREFIXES = ["/i/"]; // investor share links
 
 export async function middleware(request: NextRequest) {
@@ -61,7 +61,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // everything except static assets
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.*\\.png|.*\\.svg).*)",
+    // everything except static assets and metadata routes (og:image etc. must
+    // be reachable by social-media crawlers, which never carry a session)
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.*\\.png|.*\\.svg|opengraph-image|twitter-image).*)",
   ],
 };

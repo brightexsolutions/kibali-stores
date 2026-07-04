@@ -7,6 +7,7 @@ import { ArrowLeft, Box, Minus, PackageOpen, Plus, Tag } from "lucide-react";
 import type { Product, SaleType, StockLevel } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
 import { Badge } from "@/components/ui/badge";
+import { BackdateField } from "@/components/backdate-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,17 +20,20 @@ export function SaleWizard({
   locationName,
   products,
   stock,
+  allowBackdate,
 }: {
   locationId: string;
   locationName: string;
   products: Product[];
   stock: StockLevel[];
+  allowBackdate?: boolean;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("mode");
   const [mode, setMode] = useState<SaleType>("wholesale");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pending, startTransition] = useTransition();
 
   const isBox = mode === "wholesale";
@@ -70,7 +74,7 @@ export function SaleWizard({
     startTransition(async () => {
       const result = await createSale({
         location_id: locationId,
-        sale_date: new Date().toISOString().slice(0, 10),
+        sale_date: saleDate,
         sale_type: mode,
         customer_name: "",
         items: lines.map((l) => ({
@@ -189,6 +193,7 @@ export function SaleWizard({
               ? "Check everything. Buying many boxes, or bargained? Give a better price below."
               : "Check everything, change a price if you agreed a different one."}
           </p>
+          {allowBackdate && <BackdateField name="sale-date" onChange={setSaleDate} />}
           <div className="flex flex-col gap-2">
             {lines.map((l) => {
               const list = defaultPrice(l.product);

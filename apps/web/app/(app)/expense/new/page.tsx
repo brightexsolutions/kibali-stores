@@ -18,6 +18,7 @@ export default async function NewExpensePage({
       locationId={location.id}
       locationName={location.name}
       monthlyRent={location.monthly_rent}
+      allowBackdate={member.role !== "manager"}
     />
   );
 }

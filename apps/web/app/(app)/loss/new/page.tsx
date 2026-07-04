@@ -33,6 +33,7 @@ export default async function NewLossPage({
       locationName={location.name}
       products={(products ?? []) as Product[]}
       stock={(stock ?? []) as StockLevel[]}
+      allowBackdate={member.role !== "manager"}
     />
   );
 }

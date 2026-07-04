@@ -13,6 +13,7 @@ const REASON_STYLE: Record<string, { icon: typeof AlertTriangle; tone: string }>
   Broken: { icon: Wrench, tone: "from-rose-500 to-red-600" },
   Other: { icon: AlertTriangle, tone: "from-slate-500 to-slate-700" },
 };
+import { BackdateField } from "@/components/backdate-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,15 +25,18 @@ export function LossForm({
   locationName,
   products,
   stock,
+  allowBackdate,
 }: {
   locationId: string;
   locationName: string;
   products: Product[];
   stock: StockLevel[];
+  allowBackdate?: boolean;
 }) {
   const router = useRouter();
   const [productId, setProductId] = useState("");
   const [unitLevel, setUnitLevel] = useState<UnitLevel>("piece");
+  const [lossDate, setLossDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState<string>("Melted");
   const [otherReason, setOtherReason] = useState("");
@@ -54,7 +58,7 @@ export function LossForm({
     form.set("quantity", String(quantity));
     form.set("unit_level", unitLevel);
     form.set("reason", reason === "Other" ? otherReason || "Other" : reason);
-    form.set("loss_date", new Date().toISOString().slice(0, 10));
+    form.set("loss_date", lossDate);
     startTransition(async () => {
       const result = await createLoss(form);
       if (!result.ok) return void toast.error(result.error);
@@ -162,6 +166,8 @@ export function LossForm({
               />
             )}
           </div>
+
+          {allowBackdate && <BackdateField name="l-date" onChange={setLossDate} />}
 
           <Button size="xl" disabled={pending} loading={pending} onClick={save}>
             {pending ? "Saving…" : "Save"}

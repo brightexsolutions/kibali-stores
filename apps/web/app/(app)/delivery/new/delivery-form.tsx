@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import type { Product, Supplier } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
+import { BackdateField } from "@/components/backdate-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export function DeliveryForm({
   const [totalOverride, setTotalOverride] = useState<string>("");
   const [paidNow, setPaidNow] = useState<string>("");
   const [method, setMethod] = useState<string>("");
+  const [deliveryDate, setDeliveryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pending, startTransition] = useTransition();
 
   const supplier = suppliers.find((s) => s.id === supplierId);
@@ -79,7 +81,7 @@ export function DeliveryForm({
       const result = await createDelivery({
         supplier_id: supplierId,
         location_id: locationId, // "" = Main store
-        delivery_date: new Date().toISOString().slice(0, 10),
+        delivery_date: deliveryDate,
         total_cost: totalCost,
         paid_now: Number(paidNow) || 0,
         payment_method: method,
@@ -229,6 +231,8 @@ export function DeliveryForm({
               </div>
             </CardContent>
           </Card>
+
+          {isOwner && <BackdateField name="d-date" onChange={setDeliveryDate} />}
 
           <Button size="xl" disabled={pending} loading={pending} onClick={save}>
             {pending ? "Saving…" : "Save Delivery"}

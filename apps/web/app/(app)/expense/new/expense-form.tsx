@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Home, Wallet, Zap, MoreHorizontal } from "lucide-react";
 import type { ExpenseCategory } from "@kibali/shared";
 import { EXPENSE_LABELS, formatKES } from "@kibali/shared";
+import { BackdateField } from "@/components/backdate-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +24,17 @@ export function ExpenseForm({
   locationId,
   locationName,
   monthlyRent,
+  allowBackdate,
 }: {
   locationId: string;
   locationName: string;
   monthlyRent: number | null;
+  allowBackdate?: boolean;
 }) {
   const router = useRouter();
   const [category, setCategory] = useState<ExpenseCategory>("other");
   const [amount, setAmount] = useState<string>("");
+  const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pending, startTransition] = useTransition();
 
   function pick(c: ExpenseCategory) {
@@ -43,7 +47,7 @@ export function ExpenseForm({
     const form = new FormData(e.currentTarget);
     form.set("location_id", locationId);
     form.set("category", category);
-    form.set("expense_date", new Date().toISOString().slice(0, 10));
+    form.set("expense_date", expenseDate);
     startTransition(async () => {
       const result = await createExpense(form);
       if (!result.ok) return void toast.error(result.error);
@@ -114,6 +118,8 @@ export function ExpenseForm({
           <Label htmlFor="e-desc">Note (optional)</Label>
           <Input id="e-desc" name="description" placeholder="e.g. June rent" />
         </div>
+
+        {allowBackdate && <BackdateField name="e-date" onChange={setExpenseDate} />}
 
         <Button type="submit" size="xl" disabled={pending} loading={pending}>
           {pending ? "Saving…" : "Save"}

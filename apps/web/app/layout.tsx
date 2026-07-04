@@ -4,8 +4,20 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Kibali Stores",
   description: "Simple business records for Kibali Stores — sales, stock, money.",
+  openGraph: {
+    title: "Kibali Enterprise",
+    description: "Simple business records for busy shops — sales, stock, supplier money and profit, all in one place, on your phone.",
+    siteName: "Kibali Enterprise",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kibali Enterprise",
+    description: "Simple business records for busy shops — sales, stock, supplier money and profit, all in one place, on your phone.",
+  },
 };
 
 export const viewport: Viewport = {
