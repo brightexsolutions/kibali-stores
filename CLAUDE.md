@@ -22,6 +22,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 | M8 | Design overhaul: bottom nav, gradient cards, wholesale bargain pricing, loading states | ✅ COMPLETE (2026-07-04) |
 | M9 | Card-based shop picker, dark mode, categorized help page, Business Statement (month filter + P&L) | ✅ COMPLETE (2026-07-04) |
 | M10 | Data freshness: /dashboard revalidation on every mutation, 60s auto-refresh on all screens | ✅ COMPLETE (2026-07-04) |
+| M11 | Readability: 18px base font size, bigger StatCard/DayBrief/Badge/Today's-Records text | ✅ COMPLETE (2026-07-04) |
 
 ## Current status / next step
 
