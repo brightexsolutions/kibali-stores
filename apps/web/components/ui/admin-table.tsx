@@ -15,8 +15,8 @@ export function AdminTable({
   className?: string;
 }) {
   return (
-    <div className={cn("max-h-[440px] overflow-y-auto rounded border", className)}>
-      <table className="w-full text-sm">
+    <div className={cn("max-h-[440px] overflow-auto rounded border", className)}>
+      <table className="w-full min-w-max text-sm">
         <thead className="sticky top-0 z-10 bg-secondary text-left">
           <tr>
             {headers.map((h, i) => (

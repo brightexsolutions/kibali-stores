@@ -15,6 +15,7 @@ export interface TodayExpense {
   category: ExpenseCategory;
   amount: number;
   description: string | null;
+  created_at: string;
 }
 
 export interface TodayLoss {
@@ -23,20 +24,30 @@ export interface TodayLoss {
   unit_level: UnitLevel;
   reason: string;
   product_name: string;
+  created_at: string;
+}
+
+function recordedAt(iso: string | undefined) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleTimeString("en-KE", { hour: "numeric", minute: "2-digit" });
 }
 
 export function TodayList({
   locationName,
   sales,
+  saleTimeById,
   expenses,
   losses,
   deliveries,
+  deliveryTimeById,
 }: {
   locationName: string;
   sales: SaleSummary[];
+  saleTimeById: Record<string, string>;
   expenses: TodayExpense[];
   losses: TodayLoss[];
   deliveries: DeliverySummary[];
+  deliveryTimeById: Record<string, string>;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -86,9 +97,14 @@ export function TodayList({
                     {formatKES(s.profit)}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" aria-label="Remove sale" disabled={pending} onClick={() => remove("sales", s.sale_id, "sale")}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {recordedAt(saleTimeById[s.sale_id]) && (
+                    <span className="text-sm text-muted-foreground">{recordedAt(saleTimeById[s.sale_id])}</span>
+                  )}
+                  <Button variant="ghost" size="icon" aria-label="Remove sale" disabled={pending} onClick={() => remove("sales", s.sale_id, "sale")}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -108,9 +124,14 @@ export function TodayList({
                     {e.description ? ` — ${e.description}` : ""}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" aria-label="Remove expense" disabled={pending} onClick={() => remove("expenses", e.id, "expense")}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {recordedAt(e.created_at) && (
+                    <span className="text-sm text-muted-foreground">{recordedAt(e.created_at)}</span>
+                  )}
+                  <Button variant="ghost" size="icon" aria-label="Remove expense" disabled={pending} onClick={() => remove("expenses", e.id, "expense")}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -129,9 +150,14 @@ export function TodayList({
                   </div>
                   <div className="text-sm text-muted-foreground">{l.reason}</div>
                 </div>
-                <Button variant="ghost" size="icon" aria-label="Remove loss" disabled={pending} onClick={() => remove("stock_losses", l.id, "loss")}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {recordedAt(l.created_at) && (
+                    <span className="text-sm text-muted-foreground">{recordedAt(l.created_at)}</span>
+                  )}
+                  <Button variant="ghost" size="icon" aria-label="Remove loss" disabled={pending} onClick={() => remove("stock_losses", l.id, "loss")}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -154,9 +180,16 @@ export function TodayList({
                         : "Not paid yet"}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" aria-label="Remove delivery" disabled={pending} onClick={() => remove("deliveries", d.delivery_id, "delivery")}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {recordedAt(deliveryTimeById[d.delivery_id]) && (
+                    <span className="text-sm text-muted-foreground">
+                      {recordedAt(deliveryTimeById[d.delivery_id])}
+                    </span>
+                  )}
+                  <Button variant="ghost" size="icon" aria-label="Remove delivery" disabled={pending} onClick={() => remove("deliveries", d.delivery_id, "delivery")}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

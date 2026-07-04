@@ -21,10 +21,12 @@ export function SuppliersManager({
   businesses,
   suppliers,
   balances,
+  lastSupplyDates,
 }: {
   businesses: Business[];
   suppliers: Supplier[];
   balances: SupplierBalance[];
+  lastSupplyDates: Record<string, string>;
 }) {
   const router = useRouter();
   const [modal, setModal] = useState<{ current?: Supplier } | null>(null);
@@ -32,6 +34,11 @@ export function SuppliersManager({
 
   const balanceOf = (id: string) => balances.find((b) => b.supplier_id === id);
   const businessName = (id: string) => businesses.find((b) => b.id === id)?.name ?? "—";
+  const lastSupply = (id: string) => {
+    const date = lastSupplyDates[id];
+    if (!date) return "No supplies yet";
+    return new Date(date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,7 +63,7 @@ export function SuppliersManager({
           No suppliers yet — add the first one above.
         </p>
       ) : (
-        <AdminTable headers={["Supplier", "Business", "Delivered", "Paid", "Still owed", ""]}>
+        <AdminTable headers={["Supplier", "Business", "Last supply", "Delivered", "Paid", "Still owed", ""]}>
           {suppliers.map((s) => {
             const bal = balanceOf(s.id);
             const owed = bal?.balance_owed ?? 0;
@@ -69,6 +76,7 @@ export function SuppliersManager({
                   {s.phone && <div className="text-xs text-muted-foreground">{s.phone}</div>}
                 </Td>
                 <Td>{businessName(s.business_id)}</Td>
+                <Td className="whitespace-nowrap">{lastSupply(s.id)}</Td>
                 <Td>{formatKES(bal?.total_delivered ?? 0)}</Td>
                 <Td>{formatKES(bal?.total_paid ?? 0)}</Td>
                 <Td>

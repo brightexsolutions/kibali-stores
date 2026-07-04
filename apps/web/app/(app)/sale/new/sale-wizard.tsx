@@ -254,9 +254,9 @@ export function SaleWizard({
               );
             })}
           </div>
-          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+          <Card className="bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md">
             <CardContent className="flex items-center justify-between p-4">
-              <span className="font-semibold">Total</span>
+              <span className="font-semibold text-white/80">Total</span>
               <span className="text-2xl font-bold">{formatKES(grandTotal)}</span>
             </CardContent>
           </Card>

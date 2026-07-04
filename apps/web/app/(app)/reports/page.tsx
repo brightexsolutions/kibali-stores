@@ -135,14 +135,14 @@ export default async function ReportsPage({
         )}
       </div>
 
-      <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+      <Card className="bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md">
         <CardContent className="grid grid-cols-2 gap-4 p-4">
           <div>
-            <div className="text-xs text-white/80">Net profit</div>
+            <div className="text-sm text-white/80">Net profit</div>
             <div className="text-2xl font-bold">{formatKES(totals.profit)}</div>
           </div>
           <div>
-            <div className="text-xs text-white/80">Total sales</div>
+            <div className="text-sm text-white/80">Total sales</div>
             <div className="text-2xl font-bold">{formatKES(totals.sales)}</div>
           </div>
         </CardContent>

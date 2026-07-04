@@ -26,7 +26,7 @@ function managerItems(q: string): NavItem[] {
   return [
     { href: `/home${q}`, label: "Home", icon: LayoutGrid, match: (p) => p === "/home" },
     { href: `/stock${q}`, label: "Stock", icon: Package, match: (p) => p === "/stock" },
-    { href: `/sale/new${q}`, label: "Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
+    { href: `/sale/new${q}`, label: "Record Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
     { href: `/today${q}`, label: "Today", icon: ClipboardList, match: (p) => p === "/today" },
     { href: "/more", label: "More", icon: MoreHorizontal, match: (p) => p === "/more" },
   ];
@@ -36,7 +36,7 @@ function ownerItems(q: string): NavItem[] {
   return [
     { href: "/dashboard", label: "Home", icon: LayoutGrid, match: (p) => p === "/dashboard" },
     { href: "/suppliers", label: "Suppliers", icon: Truck, match: (p) => p.startsWith("/suppliers") },
-    { href: `/sale/new${q}`, label: "Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
+    { href: `/sale/new${q}`, label: "Record Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
     { href: "/investors", label: "Investors", icon: Users, match: (p) => p.startsWith("/investors") },
     { href: "/more", label: "More", icon: MoreHorizontal, match: (p) => p === "/more" },
   ];
@@ -75,7 +75,7 @@ export function BottomNav({ role }: { role: MemberRole }) {
                 <span className="absolute -top-5 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background">
                   <Icon className="h-6 w-6" />
                 </span>
-                <span className="mt-8 text-[11px] font-semibold text-primary">{item.label}</span>
+                <span className="mt-8 whitespace-nowrap text-[11px] font-semibold text-primary">{item.label}</span>
               </Link>
             );
           }

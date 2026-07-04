@@ -7,15 +7,28 @@ export default async function SuppliersPage() {
   await requireOwner();
   const supabase = await createClient();
 
-  const [{ data: businesses }, { data: suppliers }, { data: balances }] = await Promise.all([
-    supabase.from("businesses").select("id, name").is("deleted_at", null).order("name"),
-    supabase
-      .from("suppliers")
-      .select("id, business_id, name, phone, notes")
-      .is("deleted_at", null)
-      .order("name"),
-    supabase.from("v_supplier_balances").select("*"),
-  ]);
+  const [{ data: businesses }, { data: suppliers }, { data: balances }, { data: deliveries }] =
+    await Promise.all([
+      supabase.from("businesses").select("id, name").is("deleted_at", null).order("name"),
+      supabase
+        .from("suppliers")
+        .select("id, business_id, name, phone, notes")
+        .is("deleted_at", null)
+        .order("name"),
+      supabase.from("v_supplier_balances").select("*"),
+      supabase
+        .from("deliveries")
+        .select("supplier_id, delivery_date")
+        .is("deleted_at", null)
+        .order("delivery_date", { ascending: false }),
+    ]);
+
+  // Most recent delivery date per supplier — deliveries are already ordered
+  // newest-first, so the first one seen per supplier is the last supply date.
+  const lastSupplyDate = new Map<string, string>();
+  for (const d of deliveries ?? []) {
+    if (!lastSupplyDate.has(d.supplier_id)) lastSupplyDate.set(d.supplier_id, d.delivery_date);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -29,6 +42,7 @@ export default async function SuppliersPage() {
         businesses={(businesses ?? []) as Business[]}
         suppliers={(suppliers ?? []) as Supplier[]}
         balances={(balances ?? []) as SupplierBalance[]}
+        lastSupplyDates={Object.fromEntries(lastSupplyDate)}
       />
     </div>
   );
