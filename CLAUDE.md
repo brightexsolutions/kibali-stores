@@ -7,6 +7,23 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 
 > This file is the project's living state. It is kept current every session so work can resume after `/clear` with zero other context.
 
+## 🔭 Future roadmap (recorded 2026-07-04 — NOT STARTED, do not build without explicit go-ahead)
+
+Godwin is considering turning this from a single-family app into a **leasable multi-tenant SaaS product** for other businesses, alongside Kibali Stores' own use. Recorded now, deferred deliberately — nothing below should be started without him explicitly saying so:
+
+- **Landing/marketing page** — a public showcase site for the product (separate from the authenticated app), to present it to prospective business customers.
+- **Multi-tenancy** — other (non-family) businesses would lease the platform. When a business registers, **the app should take on their business name** (white-label per tenant) rather than showing "Kibali Stores." Implies a generic/neutral product name is needed for the underlying platform — not yet decided.
+- **Subscription billing** — monthly, per-business subscription fee.
+- **Onboarding flow (deliberately NOT self-service):** a prospective customer requests a demo → pays the subscription fee → **only then** does their business get set up (implies admin-assisted onboarding, at least initially — not an open signup form).
+- **Payments** — via Godwin's own M-Pesa Paybill or Till number, not a card processor.
+
+**Open questions to resolve before building (not urgent — surface these when Godwin wants to start):**
+- Multi-tenancy architecture: shared database with a `tenant_id`/`organization_id` column + RLS scoping (fits the existing schema shape well since it's already RLS-heavy), vs. fully separate Supabase projects per tenant (simpler isolation, more ops overhead per customer).
+- What "the app takes the business name" means concretely — custom subdomain per tenant (`acme.kibali.app`)? Just a configurable display name/logo inside a shared UI? Fully separate deployment?
+- Product name for the generic/white-label platform (Kibali Stores stays the name for Godwin's family instance either way).
+- Whether Kibali Stores (family) becomes tenant #1 on the new multi-tenant platform, or stays a separate, simpler deployment forever while a new platform is built alongside it.
+- Demo request → payment → setup: is "setup" manual (Godwin configures it) or an admin-triggered automated provisioning flow?
+
 ## Milestones
 
 | # | Milestone | Status |
