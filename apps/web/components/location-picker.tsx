@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Check, Store, Warehouse } from "lucide-react";
+import { Check, LayoutGrid, Store, Warehouse } from "lucide-react";
 import type { LocationWithBusiness } from "@/lib/location";
 import { cn } from "@/lib/utils";
 
@@ -18,10 +18,13 @@ export function LocationPicker({
   locations,
   selectedId,
   allowMainStore,
+  allowAll,
 }: {
   locations: Pick<LocationWithBusiness, "id" | "name" | "business_name">[];
   selectedId?: string;
   allowMainStore?: boolean;
+  /** Adds an "All shops" card that sets ?location=all — combined view instead of one shop at a time. */
+  allowAll?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -38,6 +41,16 @@ export function LocationPicker({
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium text-muted-foreground">Choose a shop</p>
       <div className="grid grid-cols-2 gap-2">
+        {allowAll && (
+          <ShopCard
+            label="All shops"
+            sub="Everything combined"
+            icon={LayoutGrid}
+            tone="from-violet-500 to-purple-600"
+            active={selectedId === "all"}
+            onClick={() => choose("all")}
+          />
+        )}
         {allowMainStore && (
           <ShopCard
             label="Main store"
