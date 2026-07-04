@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Kibali Stores",
   description: "Simple business records for Kibali Stores — sales, stock, money.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "Kibali Enterprise",
     description: "Simple business records for busy shops — sales, stock, supplier money and profit, all in one place, on your phone.",
