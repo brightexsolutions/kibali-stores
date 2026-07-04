@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import type { Product, Supplier } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
+import { saveSupplier } from "@/app/actions/catalog";
 import { BackdateField } from "@/components/backdate-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { createDelivery } from "@/app/actions/records";
 
@@ -21,21 +23,28 @@ interface Line {
   unit_wholesale_price: string;
 }
 
+const NEW_SUPPLIER = "__new__";
+
 export function DeliveryForm({
   isOwner,
   locations,
+  businesses,
   defaultLocationId,
   suppliers,
   products,
 }: {
   isOwner: boolean;
   locations: { id: string; name: string; business_name: string }[];
+  businesses: { id: string; name: string }[];
   defaultLocationId: string;
   suppliers: Supplier[];
   products: Product[];
 }) {
   const router = useRouter();
   const [supplierId, setSupplierId] = useState("");
+  const [localSuppliers, setLocalSuppliers] = useState<Supplier[]>(suppliers);
+  const [newSupplierOpen, setNewSupplierOpen] = useState(false);
+  const [savingSupplier, setSavingSupplier] = useState(false);
   const [locationId, setLocationId] = useState(defaultLocationId);
   const [lines, setLines] = useState<Line[]>([]);
   const [totalOverride, setTotalOverride] = useState<string>("");
@@ -44,11 +53,41 @@ export function DeliveryForm({
   const [deliveryDate, setDeliveryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pending, startTransition] = useTransition();
 
-  const supplier = suppliers.find((s) => s.id === supplierId);
+  const supplier = localSuppliers.find((s) => s.id === supplierId);
   const supplierProducts = useMemo(
     () => (supplier ? products.filter((p) => p.business_id === supplier.business_id) : []),
     [supplier, products]
   );
+
+  function onSupplierSelect(value: string) {
+    if (value === NEW_SUPPLIER) {
+      setNewSupplierOpen(true);
+      return;
+    }
+    setSupplierId(value);
+    setLines([]);
+  }
+
+  async function submitNewSupplier(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    setSavingSupplier(true);
+    const result = await saveSupplier(form);
+    setSavingSupplier(false);
+    if (!result.ok) return void toast.error(result.error);
+    const created: Supplier = {
+      id: result.data!.id,
+      business_id: String(form.get("business_id")),
+      name: String(form.get("name")),
+      phone: (form.get("phone") as string) || null,
+      notes: (form.get("notes") as string) || null,
+    };
+    setLocalSuppliers((prev) => [...prev, created]);
+    setSupplierId(created.id);
+    setLines([]);
+    setNewSupplierOpen(false);
+    toast.success(`${created.name} added — continue the delivery below.`);
+  }
 
   const itemsTotal = lines.reduce(
     (sum, l) => sum + (Number(l.quantity) || 0) * (Number(l.unit_cost) || 0),
@@ -115,14 +154,20 @@ export function DeliveryForm({
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="d-supplier">Who supplied it?</Label>
-        <Select id="d-supplier" value={supplierId} onChange={(e) => { setSupplierId(e.target.value); setLines([]); }}>
+        <Select id="d-supplier" value={supplierId} onChange={(e) => onSupplierSelect(e.target.value)}>
           <option value="">Choose the supplier…</option>
-          {suppliers.map((s) => (
+          {localSuppliers.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}
+          {isOwner && <option value={NEW_SUPPLIER}>+ New supplier…</option>}
         </Select>
+        {!isOwner && (
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t see the supplier? Ask an owner to add them first.
+          </p>
+        )}
       </div>
 
       {isOwner && (
@@ -239,6 +284,33 @@ export function DeliveryForm({
           </Button>
         </>
       )}
+
+      <Modal open={newSupplierOpen} onClose={() => setNewSupplierOpen(false)} title="New supplier">
+        <form onSubmit={submitNewSupplier} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ns-business">Business they supply</Label>
+            <Select id="ns-business" name="business_id" defaultValue={businesses[0]?.id} required>
+              {businesses.length === 0 && <option value="">Choose a business…</option>}
+              {businesses.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ns-name">Supplier name</Label>
+            <Input id="ns-name" name="name" required />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ns-phone">Phone (optional)</Label>
+            <Input id="ns-phone" name="phone" inputMode="tel" />
+          </div>
+          <Button type="submit" size="lg" disabled={savingSupplier} loading={savingSupplier}>
+            {savingSupplier ? "Saving…" : "Add supplier & continue"}
+          </Button>
+        </form>
+      </Modal>
     </div>
   );
 }

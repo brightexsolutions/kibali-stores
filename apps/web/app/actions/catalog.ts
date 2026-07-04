@@ -135,7 +135,7 @@ export async function deleteBusiness(id: string): Promise<ActionResult> {
 export async function saveSupplier(
   formData: FormData,
   id?: string
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string }>> {
   const member = await requireOwnerAction();
   if (!member) return { ok: false, error: "Only owners can do this." };
 
@@ -161,7 +161,7 @@ export async function saveSupplier(
 
   await logAction(supabase, member.userId, id ? "supplier.updated" : "supplier.created", "supplier", data.id, values);
   revalidatePath("/suppliers");
-  return { ok: true };
+  return { ok: true, data: { id: data.id } };
 }
 
 // ---------- products ----------

@@ -40,10 +40,15 @@ export default async function NewDeliveryPage({
     productsQuery,
   ]);
 
+  const businesses = Array.from(
+    new Map(locations.map((l) => [l.business_id, { id: l.business_id, name: l.business_name }])).values()
+  );
+
   return (
     <DeliveryForm
       isOwner={member.role !== "manager"}
       locations={locations.map((l) => ({ id: l.id, name: l.name, business_name: l.business_name }))}
+      businesses={businesses}
       defaultLocationId={member.role === "manager" ? member.locationId! : locationParam ?? ""}
       suppliers={(suppliers ?? []) as Supplier[]}
       products={(products ?? []) as Product[]}
