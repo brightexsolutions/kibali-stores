@@ -80,6 +80,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 - Note: `@next/swc-darwin-arm64` pinned as devDependency (npm skipped optional deps in this environment).
 - **Gotcha:** running `npm run build` (production) and `next dev` against the same `apps/web/.next` directory without clearing it in between can leave a stale/mismatched build — symptom: `/_next/static/chunks/main-app.js` 404s and the whole app silently loses client-side interactivity (forms fall back to native GET submission, no JS errors thrown). Fix: `rm -rf apps/web/.next` before switching between build and dev.
 - **Gotcha:** `pkill -f "next dev"` matches every dev server matching that pattern on the machine, including ones the user started themselves to review your work — this has caused an accidental interruption before. Prefer killing a specific PID/port (`lsof -iTCP -sTCP:LISTEN -P | grep <port>`) over a broad pattern kill.
+- **Hard rule: never `rm -rf apps/web/.next` while the user's own dev server might be running against it** — even without touching their process, clearing `.next` out from under a live `next dev` breaks it the same way as the build/dev conflict above (`main-app.js` 404s, no JS errors, forms silently fall back to native submission). This has broken Godwin's live session twice. If a clean production build check is needed, either ask first, or build/verify against a separate checkout, not the directory the user's server is pointed at. Check `lsof -iTCP -sTCP:LISTEN -P | grep 3000` before touching `.next`.
 
 ## Commands
 
