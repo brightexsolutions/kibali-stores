@@ -9,6 +9,7 @@ import type {
 import { formatKES } from "@kibali/shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sixMonthsAgoISO, toMonthlyPoints, totalsFor, currentMonthKey, monthKey } from "@/lib/summaries";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { MonthlyBars } from "@/components/charts/monthly-bars";
 import { StatCard } from "@/components/stat-card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ export default async function InvestorLinkPage({
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4 pb-16">
+      <AutoRefresh />
       <div>
         <p className="text-sm font-semibold text-primary">Kibali Stores</p>
         <h1 className="text-2xl font-bold">Hello {investor.name} 👋</h1>

@@ -21,6 +21,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 | M7 | Help, polish, PWA, favicon | ✅ COMPLETE (2026-07-03) — deploy steps below |
 | M8 | Design overhaul: bottom nav, gradient cards, wholesale bargain pricing, loading states | ✅ COMPLETE (2026-07-04) |
 | M9 | Card-based shop picker, dark mode, categorized help page, Business Statement (month filter + P&L) | ✅ COMPLETE (2026-07-04) |
+| M10 | Data freshness: /dashboard revalidation on every mutation, 60s auto-refresh on all screens | ✅ COMPLETE (2026-07-04) |
 
 ## Current status / next step
 
@@ -60,6 +61,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 - **Dark mode (2026-07-04):** `next-themes` (`attribute="class"`, `defaultTheme="system"`), toggle button in `components/theme-toggle.tsx` in the header. Dark CSS variables in `globals.css` under `.dark`. **Any new hardcoded Tailwind color (`bg-amber-50`, `border-emerald-300`, etc.) needs a `dark:` variant** — prefer the semantic tokens (`bg-card`, `text-muted-foreground`, `border-border`) which already adapt automatically. `formatKES` normalizes `-0` so category totals of exactly zero never render as "KSh -0".
 - **Business Statement (2026-07-04):** `/reports` (owner/super_admin) — pick a business scope (All / one business) and a month via URL params (`?business=<id>&month=YYYY-MM`), see a P&L-style breakdown (Sales, COGS, Gross profit, expense categories, Total expenses, Spoiled/lost stock, Net profit) plus a per-shop table. Uses `lib/summaries.ts` `monthRange`/`adjacentMonth` helpers; all server-rendered with Link-based navigation, no client JS needed for the selectors. Linked from `/more` and both dashboard levels ("View statement").
 - **Help page (2026-07-04):** topics now have a `category` (`packages/shared/help-content.ts` `HelpCategory`) and the `/help` UI (`help-chat.tsx`) shows a grid of gradient category cards first, drilling into that category's questions — replaces the old flat list. Header help icon is `MessageCircleQuestion` (was `CircleHelp`) since the page is a chat-style assistant.
+- **Data freshness (2026-07-04, confirmed with Godwin: 60s auto-refresh, not real-time push):** `components/auto-refresh.tsx` — a client component (no props) that calls `router.refresh()` every 60s and immediately on tab/app refocus (`visibilitychange`). Mounted once in `(app)/layout.tsx` so every authenticated screen gets it for free, and separately in `app/i/[token]/page.tsx` (outside the layout group) for investors. `router.refresh()` re-runs the current route's server queries without a hard reload or losing in-progress client form state. All mutations in `app/actions/records.ts` also revalidate `/dashboard` in addition to `/home`/`/today`, so the owner's dashboard never lags behind a manager's actions elsewhere.
 - **FinTrack is reference-only** — never copy its code.
 
 ## Architecture & conventions
