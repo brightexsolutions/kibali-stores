@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, ChevronRight, TrendingUp, Truck, Wallet } from "lucide-react";
+import { Building2, ChevronRight, PackagePlus, Send, TrendingUp, Truck, Wallet } from "lucide-react";
 import type {
   DailyLocationSummary,
   DeliveryProgress,
@@ -67,6 +67,21 @@ export default async function DashboardPage() {
           {greeting()}, {firstName} 👋
         </h1>
         <p className="text-sm text-muted-foreground">All of Kibali Stores at a glance.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          href="/delivery/new"
+          className="flex h-16 items-center justify-center gap-2 rounded bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+        >
+          <PackagePlus className="h-5 w-5" /> Stock Arrived
+        </Link>
+        <Link
+          href="/distribute"
+          className="flex h-16 items-center justify-center gap-2 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+        >
+          <Send className="h-5 w-5" /> Send Stock
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
