@@ -76,9 +76,17 @@ export default async function BusinessDashboardPage({
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Last 6 months</CardTitle>
-          <CardDescription>This business only.</CardDescription>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Last 6 months</CardTitle>
+            <CardDescription>This business only.</CardDescription>
+          </div>
+          <Link
+            href={`/reports?business=${business.id}`}
+            className="shrink-0 text-xs font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            View statement
+          </Link>
         </CardHeader>
         <CardContent>
           <MonthlyBars data={toMonthlyPoints(daily)} />

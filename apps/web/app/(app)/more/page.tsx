@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Activity,
   Banknote,
+  BarChart3,
   Building2,
   PackagePlus,
   Send,
@@ -19,6 +20,7 @@ const MANAGER_LINKS = [
 ];
 
 const OWNER_LINKS = [
+  { href: "/reports", label: "Business Statement", icon: BarChart3, tone: "from-teal-500 to-cyan-600" },
   { href: "/distribute", label: "Send Stock", icon: Send, tone: "from-sky-500 to-blue-600" },
   { href: "/products", label: "Products & Prices", icon: PackagePlus, tone: "from-emerald-500 to-teal-600" },
   { href: "/team", label: "Team Accounts", icon: Users2, tone: "from-violet-500 to-purple-600" },

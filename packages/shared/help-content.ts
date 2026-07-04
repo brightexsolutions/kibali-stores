@@ -2,8 +2,20 @@
  * Central help content — the "?" assistant on every screen reads from here.
  * No AI: preset questions with short, step-by-step answers in plain English.
  */
+export type HelpCategory = "Getting started" | "Selling" | "Stock" | "Money" | "Records" | "Investors & team";
+
+export const HELP_CATEGORIES: HelpCategory[] = [
+  "Getting started",
+  "Selling",
+  "Stock",
+  "Money",
+  "Records",
+  "Investors & team",
+];
+
 export interface HelpTopic {
   id: string;
+  category: HelpCategory;
   question: string;
   answer: string[]; // each string is one short step/paragraph
   related: string[]; // ids of follow-up questions to offer
@@ -13,6 +25,7 @@ export interface HelpTopic {
 export const HELP_TOPICS: HelpTopic[] = [
   {
     id: "record-sale",
+    category: "Selling",
     question: "How do I record a sale?",
     answer: [
       "1. On the home screen, tap the green “Record a Sale” button.",
@@ -25,6 +38,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "wholesale-vs-retail",
+    category: "Selling",
     question: "What is wholesale vs retail here?",
     answer: [
       "Wholesale = selling whole boxes (e.g. a full box of ice pops at KSh 350).",
@@ -35,6 +49,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "money-spent",
+    category: "Money",
     question: "How do I record money spent?",
     answer: [
       "1. Tap “Money Spent” on the home screen.",
@@ -46,6 +61,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "spoiled-stock",
+    category: "Stock",
     question: "Ice pops melted / stock got spoiled — what do I do?",
     answer: [
       "1. Tap “Spoiled / Lost” on the home screen.",
@@ -57,6 +73,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "stock-arrived",
+    category: "Stock",
     question: "The supplier brought stock — how do I record it?",
     answer: [
       "1. Tap “Stock Arrived” on the home screen.",
@@ -69,6 +86,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "supplier-owed",
+    category: "Money",
     question: "What does “Owed to supplier” mean?",
     answer: [
       "When stock arrives and it isn't fully paid, the rest is a debt to the supplier.",
@@ -80,6 +98,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "send-stock",
+    category: "Stock",
     question: "How do I send stock from the Main store to a shop?",
     answer: [
       "1. From the dashboard tap “Send Stock”.",
@@ -91,6 +110,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "stock-check",
+    category: "Stock",
     question: "How do I see what's in stock?",
     answer: [
       "Tap “What's in Stock” on the home screen (or “Stock” links on the dashboard).",
@@ -101,6 +121,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "order-soon",
+    category: "Stock",
     question: "What is the “Order soon” notice?",
     answer: [
       "The app watches how fast each product sells and how much is left.",
@@ -111,6 +132,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "finished-batch",
+    category: "Money",
     question: "What does “Finished” mean on a supply, and when is profit counted?",
     answer: [
       "Each delivery from a supplier is a batch. While it is selling you see “profit so far”.",
@@ -121,6 +143,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "profit-numbers",
+    category: "Money",
     question: "Why are there different profit numbers?",
     answer: [
       "“Profit today” on the home screen = today's sales minus their cost, expenses and spoilage — a quick daily picture.",
@@ -132,6 +155,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "fix-mistake",
+    category: "Records",
     question: "I made a mistake — how do I fix it?",
     answer: [
       "Open “Today's Records” from the home screen.",
@@ -142,6 +166,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "activity-log",
+    category: "Records",
     question: "What is the Activity Log?",
     answer: [
       "A permanent record of every action: who recorded what and when.",
@@ -153,6 +178,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "investors",
+    category: "Investors & team",
     question: "How does investing and profit sharing work?",
     answer: [
       "Family members put money in — into all of Kibali or one business. That is their capital.",
@@ -165,6 +191,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "investor-link",
+    category: "Investors & team",
     question: "How do I share an investor's summary link?",
     answer: [
       "Open Investors, find the person, tap “Copy link” and send it to them (WhatsApp, SMS…).",
@@ -175,6 +202,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "new-account",
+    category: "Investors & team",
     question: "How does someone get a login?",
     answer: [
       "Only the super admin creates accounts (Team screen → “Create an account”).",
@@ -186,6 +214,7 @@ export const HELP_TOPICS: HelpTopic[] = [
   },
   {
     id: "day-start",
+    category: "Getting started",
     question: "What should I check when the day starts?",
     answer: [
       "The home screen greets you with “How the day is starting”:",

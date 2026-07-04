@@ -102,9 +102,14 @@ export default async function DashboardPage() {
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Last 6 months</CardTitle>
-          <CardDescription>Money in vs money spent vs profit, month by month.</CardDescription>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Last 6 months</CardTitle>
+            <CardDescription>Money in vs money spent vs profit, month by month.</CardDescription>
+          </div>
+          <Link href="/reports" className="shrink-0 text-xs font-semibold text-primary underline-offset-2 hover:underline">
+            View statement
+          </Link>
         </CardHeader>
         <CardContent>
           <MonthlyBars data={toMonthlyPoints(daily)} />

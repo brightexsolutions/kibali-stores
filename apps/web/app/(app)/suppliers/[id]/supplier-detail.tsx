@@ -80,7 +80,7 @@ export function SupplierDetail({
         </div>
       </div>
 
-      <Card className={owed > 0 ? "border-amber-300 bg-amber-50" : "bg-accent"}>
+      <Card className={owed > 0 ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40" : "bg-accent"}>
         <CardContent className="flex items-center justify-between p-4">
           <div>
             <div className="text-sm text-muted-foreground">Still owed to this supplier</div>

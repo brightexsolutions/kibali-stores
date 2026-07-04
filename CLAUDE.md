@@ -20,6 +20,7 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 | M6 | Investors, capital & profit distribution (+ /i/[token] links, /activity) | ✅ COMPLETE (2026-07-03) — data verified live via SQL, screens not yet click-tested |
 | M7 | Help, polish, PWA, favicon | ✅ COMPLETE (2026-07-03) — deploy steps below |
 | M8 | Design overhaul: bottom nav, gradient cards, wholesale bargain pricing, loading states | ✅ COMPLETE (2026-07-04) |
+| M9 | Card-based shop picker, dark mode, categorized help page, Business Statement (month filter + P&L) | ✅ COMPLETE (2026-07-04) |
 
 ## Current status / next step
 
@@ -55,6 +56,10 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 - **UI standards:** plain English, buttons `rounded` (4px) NEVER larger, touch targets 56–72px, `inputMode` on numeric fields, admin tables `max-h-[440px]` + sticky thead, KES via `formatKES`.
 - **Wholesale bargaining:** box sales can be sold below list price when a customer bargains or buys many boxes — the sale confirm step has "Quick price" chips (Full price / -5 / -10 / -20) per line plus a free-text override; a "Bargained" badge shows the discount against the full price. No schema change — it's just the existing editable `unit_price` per `sale_item`, made explicit and fast.
 - **Navigation model (2026-07-04):** bottom nav is **context-aware**, not purely role-based. Owners get the manager-style nav (Home/Stock/Sale/Today/More) whenever the current route is a shop-context route (`/home`, `/stock`, `/today`, `/sale`, `/expense`, `/delivery`, `/loss`) — because owners record sales/expenses/stock at any shop just like managers. Otherwise owners see Dashboard/Suppliers/Sale/Investors/More. Managers always see the shop-context nav. Logic lives in `components/bottom-nav.tsx` (`SHOP_CONTEXT_PREFIXES`).
+- **Shop picker (2026-07-04):** `components/location-picker.tsx` renders shops as a tappable card grid (not a dropdown) — colored icon tiles, active one highlighted with a ring + checkmark. Used on `/home` and `/stock` for owners choosing which shop to view.
+- **Dark mode (2026-07-04):** `next-themes` (`attribute="class"`, `defaultTheme="system"`), toggle button in `components/theme-toggle.tsx` in the header. Dark CSS variables in `globals.css` under `.dark`. **Any new hardcoded Tailwind color (`bg-amber-50`, `border-emerald-300`, etc.) needs a `dark:` variant** — prefer the semantic tokens (`bg-card`, `text-muted-foreground`, `border-border`) which already adapt automatically. `formatKES` normalizes `-0` so category totals of exactly zero never render as "KSh -0".
+- **Business Statement (2026-07-04):** `/reports` (owner/super_admin) — pick a business scope (All / one business) and a month via URL params (`?business=<id>&month=YYYY-MM`), see a P&L-style breakdown (Sales, COGS, Gross profit, expense categories, Total expenses, Spoiled/lost stock, Net profit) plus a per-shop table. Uses `lib/summaries.ts` `monthRange`/`adjacentMonth` helpers; all server-rendered with Link-based navigation, no client JS needed for the selectors. Linked from `/more` and both dashboard levels ("View statement").
+- **Help page (2026-07-04):** topics now have a `category` (`packages/shared/help-content.ts` `HelpCategory`) and the `/help` UI (`help-chat.tsx`) shows a grid of gradient category cards first, drilling into that category's questions — replaces the old flat list. Header help icon is `MessageCircleQuestion` (was `CircleHelp`) since the page is a chat-style assistant.
 - **FinTrack is reference-only** — never copy its code.
 
 ## Architecture & conventions
@@ -71,6 +76,8 @@ Mobile-first web app that replaces paper records for the Kibali Stores family bu
 - **Auth:** middleware session guard (public: `/login`, `/api/health`, `/i/*`); `lib/auth.ts` guards (`requireMember`/`requireOwner`/`requireSuperAdmin`), forced password change via `profiles.must_change_password`.
 - Commit **after each milestone** (build clean + feature verified first), author Godwin Brown, **no Co-Authored-By trailer**. Update the milestone table + this status section every session.
 - Note: `@next/swc-darwin-arm64` pinned as devDependency (npm skipped optional deps in this environment).
+- **Gotcha:** running `npm run build` (production) and `next dev` against the same `apps/web/.next` directory without clearing it in between can leave a stale/mismatched build — symptom: `/_next/static/chunks/main-app.js` 404s and the whole app silently loses client-side interactivity (forms fall back to native GET submission, no JS errors thrown). Fix: `rm -rf apps/web/.next` before switching between build and dev.
+- **Gotcha:** `pkill -f "next dev"` matches every dev server matching that pattern on the machine, including ones the user started themselves to review your work — this has caused an accidental interruption before. Prefer killing a specific PID/port (`lsof -iTCP -sTCP:LISTEN -P | grep <port>`) over a broad pattern kill.
 
 ## Commands
 

@@ -79,7 +79,7 @@ export default async function InvestorLinkPage({
       </div>
 
       {Number(summary?.pending_amount ?? 0) > 0 && (
-        <Card className="border-amber-300 bg-amber-50">
+        <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40">
           <CardContent className="p-4 text-sm">
             <strong>{formatKES(summary!.pending_amount)}</strong> of profit is waiting for your
             decision — tell the family whether to send it to you or return it to the business.

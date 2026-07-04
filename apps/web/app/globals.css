@@ -23,6 +23,26 @@
     --ring: 160 84% 30%;
   }
 
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 210 20% 94%;
+    --card: 222 26% 12%;
+    --card-foreground: 210 20% 94%;
+    --primary: 160 70% 42%; /* brighter emerald so it still pops on dark */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 22% 16%;
+    --secondary-foreground: 210 20% 94%;
+    --muted: 222 22% 16%;
+    --muted-foreground: 215 14% 65%;
+    --accent: 160 40% 18%;
+    --accent-foreground: 160 60% 85%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 20% 22%;
+    --input: 222 20% 26%;
+    --ring: 160 70% 42%;
+  }
+
   * {
     @apply border-border;
   }

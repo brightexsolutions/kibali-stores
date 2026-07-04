@@ -3,8 +3,9 @@
  * Always plain and readable: "KSh 1,250" — no decimals unless they matter.
  */
 export function formatKES(amount: number | string | null | undefined): string {
-  const n = typeof amount === "string" ? Number(amount) : amount ?? 0;
-  if (!Number.isFinite(n)) return "KSh 0";
+  const raw = typeof amount === "string" ? Number(amount) : amount ?? 0;
+  if (!Number.isFinite(raw)) return "KSh 0";
+  const n = raw === 0 ? 0 : raw; // normalize -0 so it never renders as "KSh -0"
   const hasCents = Math.round(n * 100) % 100 !== 0;
   return `KSh ${n.toLocaleString("en-KE", {
     minimumFractionDigits: hasCents ? 2 : 0,

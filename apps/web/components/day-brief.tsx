@@ -54,9 +54,9 @@ export function DayBrief({
               <Link
                 key={`${a.location_id}-${a.product_id}`}
                 href={`/delivery/new${q}`}
-                className="flex items-start gap-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm hover:bg-amber-100"
+                className="flex items-start gap-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-950/60"
               >
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                 <span>
                   <strong>{a.product_name}: order soon.</strong>{" "}
                   {a.boxes_on_hand} box{a.boxes_on_hand === 1 ? "" : "es"} left

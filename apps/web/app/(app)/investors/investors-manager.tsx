@@ -196,7 +196,7 @@ export function InvestorsManager({
       </div>
 
       {pendingAllocations.length > 0 && (
-        <Card className="border-amber-300 bg-amber-50">
+        <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40">
           <CardHeader>
             <CardTitle>Waiting for a decision</CardTitle>
           </CardHeader>

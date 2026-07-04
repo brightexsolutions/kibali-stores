@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CircleHelp } from "lucide-react";
+import { MessageCircleQuestion } from "lucide-react";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppHeader() {
   return (
@@ -10,12 +11,13 @@ export function AppHeader() {
           Kibali Stores
         </Link>
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           <Link
             href="/help"
             aria-label="Help"
             className="flex h-11 w-11 items-center justify-center rounded hover:bg-muted"
           >
-            <CircleHelp className="h-6 w-6 text-muted-foreground" />
+            <MessageCircleQuestion className="h-6 w-6 text-muted-foreground" />
           </Link>
           <SignOutButton />
         </div>

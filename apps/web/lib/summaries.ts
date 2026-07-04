@@ -55,3 +55,21 @@ export function sixMonthsAgoISO() {
   d.setDate(1);
   return d.toISOString().slice(0, 10);
 }
+
+/** "2026-07" -> { start: "2026-07-01", end: "2026-08-01", label: "July 2026" } (end is exclusive). */
+export function monthRange(month: string) {
+  const [year, mon] = month.split("-").map(Number);
+  const start = new Date(Date.UTC(year, mon - 1, 1));
+  const end = new Date(Date.UTC(year, mon, 1));
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
+    label: start.toLocaleDateString("en-KE", { month: "long", year: "numeric", timeZone: "UTC" }),
+  };
+}
+
+export function adjacentMonth(month: string, delta: number) {
+  const [year, mon] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(year, mon - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
