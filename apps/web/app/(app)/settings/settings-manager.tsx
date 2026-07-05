@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Copy, KeyRound, Plus, Pencil, Store, Trash2 } from "lucide-react";
+import { Copy, KeyRound, Plus, Pencil, RotateCcw, Store, Trash2 } from "lucide-react";
 import type { Business, Location } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   createShopLogin,
   deleteBusiness,
   deleteLocation,
+  resetShopLogin,
   saveBusiness,
   saveLocation,
 } from "@/app/actions/catalog";
@@ -35,6 +37,7 @@ export function SettingsManager({
   shopCodes: Record<string, string>;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [modal, setModal] = useState<BusinessModal | LocationModal | null>(null);
   const [credentials, setCredentials] = useState<ShopCredentials | null>(null);
   const [pending, startTransition] = useTransition();
@@ -77,13 +80,29 @@ export function SettingsManager({
     });
   }
 
-  function removeBusiness(b: Business) {
-    if (
-      !confirm(
-        `Remove "${b.name}" and all its shops? Past records stay safe, but they'll disappear from your active lists.`
-      )
-    )
-      return;
+  async function resetLogin(l: Location) {
+    const okReset = await confirm({
+      title: `Reset password for ${l.name}?`,
+      message: "A new easy-to-remember password is created and the old one stops working right away.",
+      confirmLabel: "Reset password",
+    });
+    if (!okReset) return;
+    startTransition(async () => {
+      const result = await resetShopLogin(l.id);
+      if (!result.ok) return void toast.error(result.error);
+      setCredentials({ shopName: l.name, ...result.data! });
+      router.refresh();
+    });
+  }
+
+  async function removeBusiness(b: Business) {
+    const okDelete = await confirm({
+      title: `Remove ${b.name}?`,
+      message: "This business and all its shops disappear from your active lists. Past records stay safe.",
+      confirmLabel: "Remove",
+      destructive: true,
+    });
+    if (!okDelete) return;
     startTransition(async () => {
       const result = await deleteBusiness(b.id);
       if (!result.ok) return void toast.error(result.error);
@@ -92,9 +111,14 @@ export function SettingsManager({
     });
   }
 
-  function removeLocation(l: Location) {
-    if (!confirm(`Remove "${l.name}"? Past records stay safe, but it'll disappear from active lists.`))
-      return;
+  async function removeLocation(l: Location) {
+    const okDelete = await confirm({
+      title: `Remove ${l.name}?`,
+      message: "This shop disappears from your active lists. Past records stay safe.",
+      confirmLabel: "Remove",
+      destructive: true,
+    });
+    if (!okDelete) return;
     startTransition(async () => {
       const result = await deleteLocation(l.id);
       if (!result.ok) return void toast.error(result.error);
@@ -146,47 +170,48 @@ export function SettingsManager({
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {shops.map((l) => (
-                <div key={l.id} className="flex items-center gap-1">
-                  <button
-                    onClick={() => setModal({ kind: "location", businessId: b.id, current: l })}
-                    className="flex flex-1 items-center justify-between gap-2 rounded border bg-background p-3 text-left hover:bg-muted"
-                  >
-                    <span className="flex min-w-0 items-center gap-2 font-medium">
+                <div key={l.id} className="rounded border bg-background p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <Store className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0">
-                        <span className="block truncate">{l.name}</span>
-                        <span className="block truncate text-xs font-normal text-muted-foreground">
-                          {shopCodes[l.id]
-                            ? `Shop login: ${shopCodes[l.id]}`
-                            : "No shop login yet"}
-                        </span>
-                      </span>
-                    </span>
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{l.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {shopCodes[l.id] ? `Login code: ${shopCodes[l.id]}` : "No shop login yet"}
+                        </div>
+                      </div>
+                    </div>
                     <span className="shrink-0 text-sm text-muted-foreground">
-                      {l.monthly_rent ? `Rent ${formatKES(l.monthly_rent)}/month` : "No rent set"}
+                      {l.monthly_rent ? `Rent ${formatKES(l.monthly_rent)}/mo` : "No rent"}
                     </span>
-                  </button>
-                  {!shopCodes[l.id] && (
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1">
                     <Button
                       variant="ghost"
-                      size="icon"
-                      aria-label={`Create shop login for ${l.name}`}
-                      title="Create shop login"
-                      disabled={pending}
-                      onClick={() => addShopLogin(l)}
+                      size="sm"
+                      onClick={() => setModal({ kind: "location", businessId: b.id, current: l })}
                     >
-                      <KeyRound className="h-4 w-4 text-primary" />
+                      <Pencil className="h-4 w-4" /> Edit
                     </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Remove ${l.name}`}
-                    disabled={pending}
-                    onClick={() => removeLocation(l)}
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                    {shopCodes[l.id] ? (
+                      <Button variant="ghost" size="sm" disabled={pending} onClick={() => resetLogin(l)}>
+                        <RotateCcw className="h-4 w-4" /> Reset password
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" disabled={pending} onClick={() => addShopLogin(l)}>
+                        <KeyRound className="h-4 w-4 text-primary" /> Create login
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      disabled={pending}
+                      onClick={() => removeLocation(l)}
+                    >
+                      <Trash2 className="h-4 w-4" /> Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
               <Button
@@ -266,8 +291,8 @@ export function SettingsManager({
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">
               Share these with the person running this shop. They sign in with the shop
-              code (no email needed) and will be asked to set their own password the
-              first time. <strong>This password is shown only once.</strong>
+              code (no email needed) and keep using this password — no change needed.
+              <strong> It&apos;s shown only once here, but you can reset it any time from this page.</strong>
             </p>
             <div className="flex flex-col gap-2 rounded border bg-muted/50 p-3">
               <div className="flex items-center justify-between gap-2">

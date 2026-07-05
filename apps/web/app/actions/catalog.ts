@@ -11,7 +11,7 @@ import {
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAction } from "@/lib/audit";
-import { provisionShopLogin, type ShopLoginCredentials } from "@/lib/shop-login";
+import { provisionShopLogin, resetShopLoginPassword, type ShopLoginCredentials } from "@/lib/shop-login";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** A closed shop's accounts (shop login or personal manager) must not keep access. */
@@ -136,6 +136,25 @@ export async function createShopLogin(
   });
   revalidatePath("/settings");
   revalidatePath("/team");
+  return { ok: true, data: result.credentials };
+}
+
+/** Reset an existing shop login to a fresh memorable password. */
+export async function resetShopLogin(
+  locationId: string
+): Promise<ActionResult<ShopLoginCredentials>> {
+  const member = await requireOwnerAction();
+  if (!member) return { ok: false, error: "Only owners can do this." };
+
+  const result = await resetShopLoginPassword(locationId);
+  if ("error" in result) return { ok: false, error: result.error };
+
+  const supabase = await createClient();
+  await logAction(supabase, member.userId, "shop_login.password_reset", "member", result.userId, {
+    location_id: locationId,
+    code: result.credentials.code,
+  });
+  revalidatePath("/settings");
   return { ok: true, data: result.credentials };
 }
 

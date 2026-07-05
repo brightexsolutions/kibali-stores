@@ -17,6 +17,7 @@ import { formatKES } from "@kibali/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
@@ -62,6 +63,7 @@ export function InvestorsManager({
   profitContext: ProfitContext;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [modal, setModal] = useState<ModalState>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [scope, setScope] = useState<string>("");
@@ -173,8 +175,14 @@ export function InvestorsManager({
     toast.success("Private summary link copied — share it with the investor.");
   }
 
-  function newLink(investorId: string) {
-    if (!confirm("Make a new link? The old one will stop working.")) return;
+  async function newLink(investorId: string) {
+    const okNew = await confirm({
+      title: "Make a new link?",
+      message: "The old link will stop working right away.",
+      confirmLabel: "Make new link",
+      destructive: true,
+    });
+    if (!okNew) return;
     startTransition(async () => {
       const result = await regenerateShareLink(investorId);
       if (!result.ok) return void toast.error(result.error);

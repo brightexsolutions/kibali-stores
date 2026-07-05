@@ -8,6 +8,7 @@ import type { DeliverySummary, ExpenseCategory, SaleSummary, UnitLevel } from "@
 import { EXPENSE_LABELS, formatKES } from "@kibali/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { softDeleteRecord } from "@/app/actions/records";
 
 export interface TodayExpense {
@@ -50,10 +51,17 @@ export function TodayList({
   deliveryTimeById: Record<string, string>;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [pending, startTransition] = useTransition();
 
-  function remove(table: string, id: string, what: string) {
-    if (!confirm(`Remove this ${what}? This cannot be undone.`)) return;
+  async function remove(table: string, id: string, what: string) {
+    const okDelete = await confirm({
+      title: `Remove this ${what}?`,
+      message: "This cannot be undone.",
+      confirmLabel: "Remove",
+      destructive: true,
+    });
+    if (!okDelete) return;
     startTransition(async () => {
       const result = await softDeleteRecord(table, id);
       if (!result.ok) return void toast.error(result.error);
