@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import type { StockLevel } from "@kibali/shared";
 import { requireMember } from "@/lib/auth";
-import { listAccessibleLocations, resolveLocation } from "@/lib/location";
+import { resolveLocation } from "@/lib/location";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,10 +41,17 @@ export default async function StockPage({
   const member = await requireMember();
   const { location: locationParam } = await searchParams;
   const supabase = await createClient();
+  const { location, all } = await resolveLocation(member, locationParam);
+  if (!location && member.role === "manager") redirect("/home");
 
   // "All shops" — combined view, grouped by shop, owner/super_admin only.
-  if (locationParam === "all" && member.role !== "manager") {
-    const allLocations = await listAccessibleLocations(member);
+  // Also the default when an owner is in the general environment (nothing
+  // picked anywhere): show everything rather than guessing one shop.
+  const showAll =
+    member.role !== "manager" &&
+    (locationParam === "all" || (!location && locationParam !== "main"));
+
+  if (showAll) {
     const { data } = await supabase.from("v_stock_levels").select("*").order("product_name");
     const stock = (data ?? []) as StockLevel[];
     const byLocation = new Map<string, StockLevel[]>();
@@ -66,9 +73,9 @@ export default async function StockPage({
           </div>
         </div>
 
-        <LocationPicker locations={allLocations} selectedId="all" allowMainStore allowAll />
+        <LocationPicker locations={all} selectedId="all" allowMainStore allowAll />
 
-        {allLocations.map((l) => {
+        {all.map((l) => {
           const rows = byLocation.get(l.id) ?? [];
           return (
             <section key={l.id} className="flex flex-col gap-2">
@@ -96,9 +103,6 @@ export default async function StockPage({
     );
   }
 
-  const { location, all } = await resolveLocation(member, locationParam);
-  if (!location && member.role === "manager") redirect("/home");
-
   let query = supabase.from("v_stock_levels").select("*").order("product_name");
   query = location ? query.eq("location_id", location.id) : query.is("location_id", null);
   const { data } = await query;
@@ -121,7 +125,7 @@ export default async function StockPage({
       </div>
 
       {member.role !== "manager" && (
-        <LocationPicker locations={all} selectedId={location?.id} allowMainStore allowAll />
+        <LocationPicker locations={all} selectedId={location?.id ?? "main"} allowMainStore allowAll />
       )}
 
       {stock.length === 0 ? (

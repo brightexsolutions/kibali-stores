@@ -3,6 +3,7 @@ import type { DeliverySummary, SaleSummary } from "@kibali/shared";
 import { requireMember } from "@/lib/auth";
 import { resolveLocation } from "@/lib/location";
 import { createClient } from "@/lib/supabase/server";
+import { PickShop } from "@/components/pick-shop";
 import { TodayList, type TodayExpense, type TodayLoss } from "./today-list";
 
 export default async function TodayPage({
@@ -12,8 +13,11 @@ export default async function TodayPage({
 }) {
   const member = await requireMember();
   const { location: locationParam } = await searchParams;
-  const { location } = await resolveLocation(member, locationParam);
-  if (!location) redirect("/home");
+  const { location, all } = await resolveLocation(member, locationParam);
+  if (!location) {
+    if (member.role === "manager") redirect("/home");
+    return <PickShop title="Today's Records" locations={all} />;
+  }
 
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);

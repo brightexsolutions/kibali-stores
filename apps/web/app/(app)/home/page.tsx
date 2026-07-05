@@ -63,9 +63,9 @@ export default async function HomePage({
         </p>
       </div>
 
-      {member.role !== "manager" && all.length > 1 && (
-        <LocationPicker locations={all} selectedId={location?.id} />
-      )}
+      {/* The header's environment switcher handles changing shops once one is
+          chosen — only show the picker grid when there is nothing to show yet. */}
+      {member.role !== "manager" && !location && <LocationPicker locations={all} />}
 
       {location && (
         <>

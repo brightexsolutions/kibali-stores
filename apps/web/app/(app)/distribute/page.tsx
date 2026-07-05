@@ -6,14 +6,12 @@ import { DistributeForm } from "./distribute-form";
 
 export default async function DistributePage() {
   const member = await requireOwner();
-  const locations = await listAccessibleLocations(member);
-
   const supabase = await createClient();
-  const { data: mainStock } = await supabase
-    .from("v_stock_levels")
-    .select("*")
-    .is("location_id", null)
-    .gt("pieces_on_hand", 0);
+  // Independent queries — one round-trip instead of two.
+  const [locations, { data: mainStock }] = await Promise.all([
+    listAccessibleLocations(member),
+    supabase.from("v_stock_levels").select("*").is("location_id", null).gt("pieces_on_hand", 0),
+  ]);
 
   return (
     <DistributeForm

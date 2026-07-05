@@ -3,6 +3,7 @@ import type { Product, StockLevel } from "@kibali/shared";
 import { requireMember } from "@/lib/auth";
 import { resolveLocation } from "@/lib/location";
 import { createClient } from "@/lib/supabase/server";
+import { PickShop } from "@/components/pick-shop";
 import { SaleWizard } from "./sale-wizard";
 
 export default async function NewSalePage({
@@ -12,8 +13,11 @@ export default async function NewSalePage({
 }) {
   const member = await requireMember();
   const { location: locationParam } = await searchParams;
-  const { location } = await resolveLocation(member, locationParam);
-  if (!location) redirect("/home");
+  const { location, all } = await resolveLocation(member, locationParam);
+  if (!location) {
+    if (member.role === "manager") redirect("/home");
+    return <PickShop title="Record a Sale" locations={all} />;
+  }
 
   const supabase = await createClient();
   const [{ data: products }, { data: stock }] = await Promise.all([

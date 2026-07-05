@@ -13,16 +13,15 @@ export default async function SupplierPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: supplier } = await supabase
-    .from("suppliers")
-    .select("id, business_id, name, phone, notes")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (!supplier) notFound();
-
-  const [{ data: balance }, { data: summaries }, { data: progress }, { data: payments }] =
+  // Everything filters by the id directly — one round-trip instead of two.
+  const [{ data: supplier }, { data: balance }, { data: summaries }, { data: progress }, { data: payments }] =
     await Promise.all([
+      supabase
+        .from("suppliers")
+        .select("id, business_id, name, phone, notes")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .maybeSingle(),
       supabase.from("v_supplier_balances").select("*").eq("supplier_id", id).maybeSingle(),
       supabase
         .from("v_delivery_summary")
@@ -37,6 +36,7 @@ export default async function SupplierPage({
         .is("deleted_at", null)
         .order("paid_on", { ascending: false }),
     ]);
+  if (!supplier) notFound();
 
   return (
     <SupplierDetail

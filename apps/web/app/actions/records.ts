@@ -49,6 +49,12 @@ export async function createSale(payload: unknown): Promise<ActionResult> {
     console.error("[records.createSale] products", productsError?.message);
     return { ok: false, error: "Could not load the products. Try again." };
   }
+  // Guard BEFORE inserting the sale header — a stale product id (retired
+  // mid-session) would otherwise throw after the insert and leave an orphan
+  // sale with no items.
+  if (input.items.some((i) => !products.some((p) => p.id === i.product_id))) {
+    return { ok: false, error: "A product in this sale no longer exists. Refresh and try again." };
+  }
 
   const { data: sale, error: saleError } = await supabase
     .from("sales")

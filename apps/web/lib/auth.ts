@@ -1,10 +1,15 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { SessionMember } from "@kibali/shared";
 import { createClient } from "@/lib/supabase/server";
 
-/** Load the signed-in user's profile + active membership (role, shop). */
-export async function getSessionMember(): Promise<SessionMember | null> {
+/**
+ * Load the signed-in user's profile + active membership (role, shop).
+ * Wrapped in React cache() — the layout and the page both need this, and
+ * without dedupe every navigation paid for the auth round-trips twice.
+ */
+export const getSessionMember = cache(async (): Promise<SessionMember | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,7 +41,7 @@ export async function getSessionMember(): Promise<SessionMember | null> {
     locationId: member.location_id,
     mustChangePassword: profile.must_change_password,
   };
-}
+});
 
 /** Guard for authenticated screens; forces first-login password change. */
 export async function requireMember(opts?: { allowPasswordChange?: boolean }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   ClipboardList,
   LayoutGrid,
@@ -22,7 +22,7 @@ interface NavItem {
   raised?: boolean;
 }
 
-function managerItems(q: string): NavItem[] {
+function shopItems(q: string): NavItem[] {
   return [
     { href: `/home${q}`, label: "Home", icon: LayoutGrid, match: (p) => p === "/home" },
     { href: `/stock${q}`, label: "Stock", icon: Package, match: (p) => p === "/stock" },
@@ -32,28 +32,35 @@ function managerItems(q: string): NavItem[] {
   ];
 }
 
-function ownerItems(q: string): NavItem[] {
-  return [
-    { href: "/dashboard", label: "Home", icon: LayoutGrid, match: (p) => p === "/dashboard" },
-    { href: "/suppliers", label: "Suppliers", icon: Truck, match: (p) => p.startsWith("/suppliers") },
-    { href: `/sale/new${q}`, label: "Record Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
-    { href: "/investors", label: "Investors", icon: Users, match: (p) => p.startsWith("/investors") },
-    { href: "/more", label: "More", icon: MoreHorizontal, match: (p) => p === "/more" },
-  ];
-}
+const GENERAL_ITEMS: NavItem[] = [
+  { href: "/dashboard", label: "Home", icon: LayoutGrid, match: (p) => p === "/dashboard" },
+  { href: "/suppliers", label: "Suppliers", icon: Truck, match: (p) => p.startsWith("/suppliers") },
+  { href: "/sale/new", label: "Record Sale", icon: ShoppingCart, match: (p) => p.startsWith("/sale"), raised: true },
+  { href: "/investors", label: "Investors", icon: Users, match: (p) => p.startsWith("/investors") },
+  { href: "/more", label: "More", icon: MoreHorizontal, match: (p) => p === "/more" },
+];
 
-// Routes where an owner is working a specific shop, same as a manager would —
-// they get the identical quick actions, scoped to whichever shop they're in.
-const SHOP_CONTEXT_PREFIXES = ["/home", "/stock", "/today", "/sale", "/expense", "/delivery", "/loss"];
-
-export function BottomNav({ role }: { role: MemberRole }) {
+/**
+ * The nav follows the chosen working environment (the view switcher), never
+ * the current route — so it doesn't reshuffle underneath the user mid-task.
+ * Managers are always in their shop's environment; owners are in the shop
+ * they picked, or the general "All of Kibali" environment.
+ */
+export function BottomNav({
+  role,
+  viewLocationId,
+}: {
+  role: MemberRole;
+  viewLocationId: string | null;
+}) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const locationParam = searchParams.get("location");
-  const q = role !== "manager" && locationParam ? `?location=${locationParam}` : "";
 
-  const inShopContext = role === "manager" || SHOP_CONTEXT_PREFIXES.some((p) => pathname.startsWith(p));
-  const items = inShopContext ? managerItems(q) : ownerItems(q);
+  const items =
+    role === "manager"
+      ? shopItems("")
+      : viewLocationId
+        ? shopItems(`?location=${viewLocationId}`)
+        : GENERAL_ITEMS;
 
   return (
     <nav

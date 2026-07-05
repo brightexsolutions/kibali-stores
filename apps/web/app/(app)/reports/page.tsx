@@ -19,18 +19,16 @@ export default async function ReportsPage({
   const { start, end, label } = monthRange(month);
 
   const supabase = await createClient();
-  const { data: businesses } = await supabase
-    .from("businesses")
-    .select("id, name")
-    .is("deleted_at", null)
-    .order("name");
-
   let locationsQuery = supabase
     .from("locations")
     .select("id, business_id, name")
     .is("deleted_at", null);
   if (businessId) locationsQuery = locationsQuery.eq("business_id", businessId);
-  const { data: locations } = await locationsQuery;
+  // Independent queries — one round-trip instead of two.
+  const [{ data: businesses }, { data: locations }] = await Promise.all([
+    supabase.from("businesses").select("id, name").is("deleted_at", null).order("name"),
+    locationsQuery,
+  ]);
   const locationIds = (locations ?? []).map((l) => l.id);
 
   const [dailyRes, expensesRes] = await Promise.all([

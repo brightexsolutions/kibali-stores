@@ -20,19 +20,16 @@ export default async function BusinessDashboardPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("id, name, description")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (!business) notFound();
-
-  const [locationsRes, suppliersRes, membersRes] = await Promise.all([
+  // The business row and the id-filtered lists don't depend on each other —
+  // fetch them in one round-trip instead of two.
+  const [businessRes, locationsRes, suppliersRes, membersRes] = await Promise.all([
+    supabase.from("businesses").select("id, name, description").eq("id", id).is("deleted_at", null).maybeSingle(),
     supabase.from("locations").select("id, name").eq("business_id", id).is("deleted_at", null).order("name"),
     supabase.from("suppliers").select("id, name").eq("business_id", id).is("deleted_at", null),
     supabase.from("members").select("location_id, is_active, profiles(full_name)").eq("role", "manager").eq("is_active", true),
   ]);
+  const business = businessRes.data;
+  if (!business) notFound();
   const locations = locationsRes.data ?? [];
   const locationIds = locations.map((l) => l.id);
   const supplierIds = (suppliersRes.data ?? []).map((s) => s.id);

@@ -28,21 +28,23 @@ export default async function LocationDashboardPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: location } = await supabase
-    .from("locations")
-    .select("id, name, business_id, businesses(name)")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (!location) notFound();
-  const businessName = (location.businesses as unknown as { name: string })?.name ?? "";
-
   const yesterdayDate = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-  const [dailyRes, stockRes, reorderRes] = await Promise.all([
+  // Everything filters by the id directly, so nothing needs to wait for the
+  // location row — one round-trip instead of two.
+  const [locationRes, dailyRes, stockRes, reorderRes] = await Promise.all([
+    supabase
+      .from("locations")
+      .select("id, name, business_id, businesses(name)")
+      .eq("id", id)
+      .is("deleted_at", null)
+      .maybeSingle(),
     supabase.from("v_daily_location_summary").select("*").eq("location_id", id).gte("day", sixMonthsAgoISO()),
     supabase.from("v_stock_levels").select("*").eq("location_id", id).order("product_name"),
     supabase.from("v_reorder_status").select("*").eq("location_id", id).eq("order_soon", true),
   ]);
+  const location = locationRes.data;
+  if (!location) notFound();
+  const businessName = (location.businesses as unknown as { name: string })?.name ?? "";
 
   const daily = (dailyRes.data ?? []) as DailyLocationSummary[];
   const stock = (stockRes.data ?? []) as StockLevel[];

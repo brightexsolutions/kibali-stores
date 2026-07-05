@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Check, LayoutGrid, Store, Warehouse } from "lucide-react";
+import { Check, LayoutGrid, Loader2, Store, Warehouse } from "lucide-react";
 import type { LocationWithBusiness } from "@/lib/location";
+import { setViewCookie } from "@/lib/view-client";
 import { cn } from "@/lib/utils";
 
 const TONES = [
@@ -29,13 +31,25 @@ export function LocationPicker({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [choosing, setChoosing] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   function choose(value: string) {
+    setChoosing(value);
+    // Picking a real shop also moves the owner's working environment there,
+    // so the nav and every next screen stay in step ("main"/"all" are just
+    // views of stock, not environments).
+    if (value !== "main" && value !== "all") setViewCookie(value);
     const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set("location", value);
-    else params.delete("location");
-    router.push(`${pathname}?${params.toString()}`);
+    params.set("location", value);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+      router.refresh();
+      setChoosing(null);
+    });
   }
+
+  const busy = (value: string) => pending && choosing === value;
 
   return (
     <div className="flex flex-col gap-2">
@@ -48,6 +62,7 @@ export function LocationPicker({
             icon={LayoutGrid}
             tone="from-violet-500 to-purple-600"
             active={selectedId === "all"}
+            busy={busy("all")}
             onClick={() => choose("all")}
           />
         )}
@@ -57,8 +72,9 @@ export function LocationPicker({
             sub="Undistributed stock"
             icon={Warehouse}
             tone="from-slate-500 to-slate-700"
-            active={!selectedId}
-            onClick={() => choose("")}
+            active={selectedId === "main"}
+            busy={busy("main")}
+            onClick={() => choose("main")}
           />
         )}
         {locations.map((l, i) => (
@@ -69,6 +85,7 @@ export function LocationPicker({
             icon={Store}
             tone={TONES[i % TONES.length]}
             active={selectedId === l.id}
+            busy={busy(l.id)}
             onClick={() => choose(l.id)}
           />
         ))}
@@ -83,6 +100,7 @@ function ShopCard({
   icon: Icon,
   tone,
   active,
+  busy,
   onClick,
 }: {
   label: string;
@@ -90,6 +108,7 @@ function ShopCard({
   icon: typeof Store;
   tone: string;
   active: boolean;
+  busy: boolean;
   onClick: () => void;
 }) {
   return (
@@ -100,15 +119,20 @@ function ShopCard({
         "relative flex h-24 flex-col items-center justify-center gap-1 rounded p-2 text-center shadow-sm transition-transform active:scale-[0.98]",
         active
           ? `bg-gradient-to-br ${tone} text-white ring-2 ring-offset-2 ring-primary`
-          : "border-2 border-border bg-background text-foreground"
+          : "border-2 border-border bg-background text-foreground",
+        busy && "opacity-80"
       )}
     >
-      {active && (
+      {active && !busy && (
         <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white/25">
           <Check className="h-3.5 w-3.5" />
         </span>
       )}
-      <Icon className={cn("h-6 w-6", active ? "text-white" : "text-primary")} />
+      {busy ? (
+        <Loader2 className={cn("h-6 w-6 animate-spin", active ? "text-white" : "text-primary")} />
+      ) : (
+        <Icon className={cn("h-6 w-6", active ? "text-white" : "text-primary")} />
+      )}
       <span className="text-sm font-semibold leading-tight">{label}</span>
       <span className={cn("text-[11px] leading-tight", active ? "text-white/80" : "text-muted-foreground")}>
         {sub}

@@ -12,13 +12,16 @@ export default async function NewDeliveryPage({
 }) {
   const member = await requireMember();
   const { location: locationParam } = await searchParams;
-  const locations = await listAccessibleLocations(member);
-  if (member.role === "manager" && locations.length === 0) redirect("/home");
-
   const supabase = await createClient();
-  // Managers: only their business's suppliers/products. Owners: everything.
+
+  // Managers: only their business's suppliers/products — that filter needs
+  // the locations list first. Owners see everything, so for them all three
+  // queries run in one round-trip.
+  const locationsPromise = listAccessibleLocations(member);
   const businessIds =
-    member.role === "manager" ? locations.map((l) => l.business_id) : undefined;
+    member.role === "manager"
+      ? (await locationsPromise).map((l) => l.business_id)
+      : undefined;
 
   let suppliersQuery = supabase
     .from("suppliers")
@@ -35,10 +38,12 @@ export default async function NewDeliveryPage({
     suppliersQuery = suppliersQuery.in("business_id", businessIds);
     productsQuery = productsQuery.in("business_id", businessIds);
   }
-  const [{ data: suppliers }, { data: products }] = await Promise.all([
+  const [locations, { data: suppliers }, { data: products }] = await Promise.all([
+    locationsPromise,
     suppliersQuery,
     productsQuery,
   ]);
+  if (member.role === "manager" && locations.length === 0) redirect("/home");
 
   const businesses = Array.from(
     new Map(locations.map((l) => [l.business_id, { id: l.business_id, name: l.business_name }])).values()

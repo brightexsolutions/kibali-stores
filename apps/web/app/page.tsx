@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { getViewCookie } from "@/lib/view";
 import { LandingPage } from "@/components/landing-page";
 
 export const metadata: Metadata = {
@@ -26,5 +27,8 @@ export default async function RootPage() {
   const member = await getSessionMember();
   if (!member) redirect("/welcome");
   if (member.mustChangePassword) redirect("/account/password");
-  redirect(member.role === "manager" ? "/home" : "/dashboard");
+  if (member.role === "manager") redirect("/home");
+  // Owners land back in whichever environment they were working in.
+  const view = await getViewCookie();
+  redirect(view && view !== "all" ? "/home" : "/dashboard");
 }

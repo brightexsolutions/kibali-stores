@@ -26,10 +26,13 @@ export default async function DashboardPage() {
   const locations = await listAccessibleLocations(member);
   const yesterdayDate = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
 
-  const [dailyRes, batchesRes, balancesRes, suppliersRes, stockRes, reorderRes, businessesRes] =
+  const [dailyRes, batchesRes, finishedRes, balancesRes, suppliersRes, stockRes, reorderRes, businessesRes] =
     await Promise.all([
       supabase.from("v_daily_location_summary").select("*").gte("day", sixMonthsAgoISO()),
       supabase.from("v_delivery_progress").select("*").order("delivery_date", { ascending: false }).limit(12),
+      // Profit banked must count EVERY finished batch, not just the 12 most
+      // recent deliveries the strip shows — a limit here silently undercounts.
+      supabase.from("v_delivery_progress").select("realized_profit").eq("status", "finished"),
       supabase.from("v_supplier_balances").select("*"),
       supabase.from("suppliers").select("id, name").is("deleted_at", null),
       supabase.from("v_stock_levels").select("*"),
@@ -45,9 +48,10 @@ export default async function DashboardPage() {
   const businesses = businessesRes.data ?? [];
 
   const thisMonth = totalsFor(daily, (r) => monthKey(r.day) === currentMonthKey());
-  const profitBanked = batches
-    .filter((b) => b.status === "finished")
-    .reduce((sum, b) => sum + Number(b.realized_profit), 0);
+  const profitBanked = (finishedRes.data ?? []).reduce(
+    (sum, b) => sum + Number(b.realized_profit),
+    0
+  );
   const totalOwed = balances.reduce((sum, b) => sum + Math.max(0, Number(b.balance_owed)), 0);
   const supplierNames = new Map((suppliersRes.data ?? []).map((s) => [s.id, s.name] as const));
   const yesterday = totalsFor(daily, (r) => r.day === yesterdayDate);
