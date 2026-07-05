@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Copy, Plus } from "lucide-react";
 import type { Location, MemberRole } from "@kibali/shared";
 import { ROLE_LABELS } from "@kibali/shared";
-import { AdminTable, Td } from "@/components/ui/admin-table";
+import { AdminTable, MobileCard, MobileField, Td } from "@/components/ui/admin-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +80,34 @@ export function TeamManager({ rows, locations }: { rows: TeamRow[]; locations: L
         <Plus className="h-5 w-5" /> Create an account
       </Button>
 
-      <AdminTable headers={["Person", "Role", "Shop", "Status", ""]}>
+      <AdminTable
+        headers={["Person", "Role", "Shop", "Status", ""]}
+        mobile={rows.map((row) => (
+          <MobileCard key={row.memberId} className={row.isActive ? "" : "opacity-50"}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate font-semibold">{row.fullName}</div>
+                <div className="truncate text-xs text-muted-foreground">{row.email}</div>
+              </div>
+              <Badge variant={row.isActive ? "good" : "muted"}>
+                {row.isActive ? "Active" : "Off"}
+              </Badge>
+            </div>
+            <MobileField label="Role">{ROLE_LABELS[row.role]}</MobileField>
+            <MobileField label="Shop">{locationName(row.locationId)}</MobileField>
+            {row.role !== "super_admin" && (
+              <div className="flex justify-end gap-1">
+                <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => reset(row)}>
+                  Reset password
+                </Button>
+                <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => toggleActive(row)}>
+                  {row.isActive ? "Deactivate" : "Activate"}
+                </Button>
+              </div>
+            )}
+          </MobileCard>
+        ))}
+      >
         {rows.map((row) => (
           <tr key={row.memberId} className={row.isActive ? "" : "opacity-50"}>
             <Td>

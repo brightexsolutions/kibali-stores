@@ -5,7 +5,8 @@ type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
 // Routes that need no session
 const PUBLIC_PATHS = ["/", "/login", "/api/health"];
-const PUBLIC_PREFIXES = ["/i/"]; // investor share links
+// investor share links; cron routes carry their own CRON_SECRET auth
+const PUBLIC_PREFIXES = ["/i/", "/api/cron/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

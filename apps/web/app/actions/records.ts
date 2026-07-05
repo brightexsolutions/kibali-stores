@@ -13,6 +13,7 @@ import {
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAction } from "@/lib/audit";
+import { notifyOwnersOnce } from "@/lib/push";
 
 function firstIssue(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Check the form and try again.";
@@ -24,6 +25,44 @@ async function requireLocationAccess(locationId: string | null) {
   if (!member) return null;
   if (member.role === "manager" && member.locationId !== locationId) return null;
   return member;
+}
+
+type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Offline replays: a record submitted from the outbox carries a client_ref;
+ * if it already landed (connection died after the save), treat as success.
+ */
+async function alreadySaved(supabase: SupabaseServer, table: string, clientRef?: string) {
+  if (!clientRef) return false;
+  const { data } = await supabase.from(table).select("id").eq("client_ref", clientRef).maybeSingle();
+  return !!data;
+}
+
+/** After a sale/loss, warn owners about any hit product now at/below threshold. */
+async function alertLowStock(supabase: SupabaseServer, locationId: string, productIds: string[]) {
+  try {
+    const [{ data: rows }, { data: location }] = await Promise.all([
+      supabase
+        .from("v_stock_levels")
+        .select("product_id, product_name, boxes_on_hand, unit_name, low_stock_threshold")
+        .eq("location_id", locationId)
+        .in("product_id", productIds),
+      supabase.from("locations").select("name").eq("id", locationId).maybeSingle(),
+    ]);
+    const shopName = location?.name ?? "a shop";
+    for (const row of rows ?? []) {
+      if (Number(row.boxes_on_hand) > row.low_stock_threshold) continue;
+      await notifyOwnersOnce("low_stock", `${locationId}:${row.product_id}`, {
+        title: "Order soon",
+        body: `${row.product_name} at ${shopName}: ${row.boxes_on_hand} ${row.unit_name}${Number(row.boxes_on_hand) === 1 ? "" : "s"} left.`,
+        url: `/stock?location=${locationId}`,
+      });
+    }
+  } catch (err) {
+    // never let a notification problem fail the record itself
+    console.error("[records.alertLowStock]", err);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -38,6 +77,7 @@ export async function createSale(payload: unknown): Promise<ActionResult> {
   if (!member) return { ok: false, error: "You can only record for your own shop." };
 
   const supabase = await createClient();
+  if (await alreadySaved(supabase, "sales", input.client_ref || undefined)) return { ok: true };
 
   // cost snapshots come from the product at sale time
   const productIds = input.items.map((i) => i.product_id);
@@ -64,6 +104,7 @@ export async function createSale(payload: unknown): Promise<ActionResult> {
       sale_type: input.sale_type,
       customer_name: input.customer_name || null,
       created_by: member.userId,
+      client_ref: input.client_ref || null,
     })
     .select("id")
     .single();
@@ -101,6 +142,7 @@ export async function createSale(payload: unknown): Promise<ActionResult> {
     sale_type: input.sale_type,
     items: items.length,
   });
+  await alertLowStock(supabase, input.location_id, productIds);
   revalidatePath("/home");
   revalidatePath("/today");
   revalidatePath("/dashboard");
@@ -119,6 +161,8 @@ export async function createExpense(formData: FormData): Promise<ActionResult> {
   if (!member) return { ok: false, error: "You can only record for your own shop." };
 
   const supabase = await createClient();
+  if (await alreadySaved(supabase, "expenses", input.client_ref || undefined)) return { ok: true };
+
   const { data, error } = await supabase
     .from("expenses")
     .insert({
@@ -128,6 +172,7 @@ export async function createExpense(formData: FormData): Promise<ActionResult> {
       expense_date: input.expense_date,
       description: input.description || null,
       created_by: member.userId,
+      client_ref: input.client_ref || null,
     })
     .select("id")
     .single();
@@ -228,6 +273,8 @@ export async function createLoss(formData: FormData): Promise<ActionResult> {
   if (!member) return { ok: false, error: "You can only record for your own shop." };
 
   const supabase = await createClient();
+  if (await alreadySaved(supabase, "stock_losses", input.client_ref || undefined)) return { ok: true };
+
   const { data: product, error: productError } = await supabase
     .from("products")
     .select("cost_price, pieces_per_unit")
@@ -253,6 +300,7 @@ export async function createLoss(formData: FormData): Promise<ActionResult> {
       reason: input.reason,
       loss_date: input.loss_date,
       created_by: member.userId,
+      client_ref: input.client_ref || null,
     })
     .select("id")
     .single();
@@ -266,6 +314,7 @@ export async function createLoss(formData: FormData): Promise<ActionResult> {
     quantity: input.quantity,
     reason: input.reason,
   });
+  await alertLowStock(supabase, input.location_id, [input.product_id]);
   revalidatePath("/home");
   revalidatePath("/today");
   revalidatePath("/dashboard");

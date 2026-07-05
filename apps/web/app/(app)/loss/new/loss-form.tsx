@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { createLoss } from "@/app/actions/records";
+import { queueRecord } from "@/lib/outbox";
 
 export function LossForm({
   locationId,
@@ -59,8 +60,20 @@ export function LossForm({
     form.set("unit_level", unitLevel);
     form.set("reason", reason === "Other" ? otherReason || "Other" : reason);
     form.set("loss_date", lossDate);
+    form.set("client_ref", crypto.randomUUID()); // lets an offline replay be deduplicated
     startTransition(async () => {
-      const result = await createLoss(form);
+      let result;
+      try {
+        result = await createLoss(form);
+      } catch {
+        // No connection — queue and reset in place (navigating offline may hit
+        // an uncached page).
+        queueRecord("loss", Object.fromEntries(form) as Record<string, unknown>);
+        toast.success("No signal — saved on this phone. It will send automatically.");
+        setProductId("");
+        setQuantity(1);
+        return;
+      }
       if (!result.ok) return void toast.error(result.error);
       toast.success("Recorded — stock updated.");
       router.push(`/home${window.location.search}`);

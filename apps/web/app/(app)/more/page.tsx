@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { requireMember } from "@/lib/auth";
 import { greeting } from "@/lib/utils";
+import { NotificationsToggle } from "@/components/notifications-toggle";
 
 const MANAGER_LINKS = [
   { href: "/expense/new", label: "Money Spent", icon: Banknote, tone: "from-amber-500 to-orange-500" },
@@ -52,10 +53,11 @@ export default async function MorePage() {
           <Link
             key={href}
             href={href}
-            className={`flex h-28 flex-col items-center justify-center gap-2 rounded bg-gradient-to-br ${tone} p-3 text-center text-sm font-semibold text-white shadow-sm active:scale-[0.98]`}
+            className={`flex h-28 flex-col items-center justify-center gap-1.5 rounded bg-gradient-to-br ${tone} p-3 text-center text-sm font-semibold text-white shadow-sm active:scale-[0.98]`}
           >
             <Icon className="h-7 w-7" />
             {label}
+            <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold">Record →</span>
           </Link>
         ))}
       </div>
@@ -79,6 +81,8 @@ export default async function MorePage() {
           </div>
         </>
       )}
+
+      {member.role !== "manager" && <NotificationsToggle />}
 
       {member.role === "super_admin" && (
         <Link

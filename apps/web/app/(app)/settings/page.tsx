@@ -1,4 +1,5 @@
 import type { Business, Location } from "@kibali/shared";
+import { isShopLoginEmail, shopCodeFromEmail } from "@kibali/shared";
 import { requireOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsManager } from "./settings-manager";
@@ -7,7 +8,7 @@ export default async function SettingsPage() {
   await requireOwner();
   const supabase = await createClient();
 
-  const [{ data: businesses }, { data: locations }] = await Promise.all([
+  const [{ data: businesses }, { data: locations }, { data: members }] = await Promise.all([
     supabase
       .from("businesses")
       .select("id, name, description")
@@ -18,7 +19,22 @@ export default async function SettingsPage() {
       .select("id, business_id, name, monthly_rent")
       .is("deleted_at", null)
       .order("name"),
+    supabase
+      .from("members")
+      .select("location_id, profiles(email)")
+      .eq("role", "manager")
+      .eq("is_active", true)
+      .not("location_id", "is", null),
   ]);
+
+  // location_id -> its shop-login code (personal manager emails are skipped)
+  const shopCodes: Record<string, string> = {};
+  for (const m of members ?? []) {
+    const email = (m.profiles as unknown as { email: string })?.email ?? "";
+    if (m.location_id && isShopLoginEmail(email)) {
+      shopCodes[m.location_id] = shopCodeFromEmail(email);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -31,6 +47,7 @@ export default async function SettingsPage() {
       <SettingsManager
         businesses={(businesses ?? []) as Business[]}
         locations={(locations ?? []) as Location[]}
+        shopCodes={shopCodes}
       />
     </div>
   );

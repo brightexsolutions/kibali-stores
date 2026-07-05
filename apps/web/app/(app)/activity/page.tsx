@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { AdminTable, Td } from "@/components/ui/admin-table";
+import { AdminTable, MobileCard, Td } from "@/components/ui/admin-table";
 
 const ACTION_LABELS: Record<string, string> = {
   "sale.created": "recorded a sale",
@@ -73,7 +73,25 @@ export default async function ActivityPage() {
           Nothing yet — actions will appear here as the team works.
         </p>
       ) : (
-        <AdminTable headers={["When", "Who", "Did what"]}>
+        <AdminTable
+          headers={["When", "Who", "Did what"]}
+          mobile={(logs ?? []).map((log) => (
+            <MobileCard key={log.id} className="gap-0.5">
+              <div className="text-sm">
+                <span className="font-semibold">{nameOf(log.actor_id)}</span>{" "}
+                {ACTION_LABELS[log.action] ?? log.action}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(log.created_at).toLocaleString("en-KE", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </MobileCard>
+          ))}
+        >
           {(logs ?? []).map((log) => (
             <tr key={log.id}>
               <Td className="whitespace-nowrap text-xs text-muted-foreground">

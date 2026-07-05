@@ -11,6 +11,20 @@ import {
 import { getSessionMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logAction } from "@/lib/audit";
+import { provisionShopLogin, type ShopLoginCredentials } from "@/lib/shop-login";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/** A closed shop's accounts (shop login or personal manager) must not keep access. */
+async function deactivateLocationMembers(locationIds: string[]) {
+  if (locationIds.length === 0) return;
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("members")
+    .update({ is_active: false })
+    .in("location_id", locationIds)
+    .eq("role", "manager");
+  if (error) console.error("[catalog.deactivateLocationMembers]", error.message);
+}
 
 async function requireOwnerAction() {
   const member = await getSessionMember();
@@ -54,7 +68,7 @@ export async function saveBusiness(
 export async function saveLocation(
   formData: FormData,
   id?: string
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string; shopLogin?: ShopLoginCredentials }>> {
   const member = await requireOwnerAction();
   if (!member) return { ok: false, error: "Only owners can do this." };
 
@@ -78,8 +92,51 @@ export async function saveLocation(
   }
 
   await logAction(supabase, member.userId, id ? "location.updated" : "location.created", "location", data.id, values);
+
+  // Every new shop gets its own login (code + temp password shown once).
+  // A failure here doesn't fail the shop — /settings offers a retry button.
+  let shopLogin: ShopLoginCredentials | undefined;
+  if (!id) {
+    const result = await provisionShopLogin({ id: data.id, name: values.name });
+    if ("credentials" in result) {
+      shopLogin = result.credentials;
+      await logAction(supabase, member.userId, "shop_login.created", "member", result.userId, {
+        location_id: data.id,
+        code: result.credentials.code,
+      });
+    }
+  }
+
   revalidatePath("/settings");
-  return { ok: true };
+  return { ok: true, data: { id: data.id, shopLogin } };
+}
+
+/** Create a shop login for an existing shop that doesn't have one yet. */
+export async function createShopLogin(
+  locationId: string
+): Promise<ActionResult<ShopLoginCredentials>> {
+  const member = await requireOwnerAction();
+  if (!member) return { ok: false, error: "Only owners can do this." };
+
+  const supabase = await createClient();
+  const { data: location } = await supabase
+    .from("locations")
+    .select("id, name")
+    .eq("id", locationId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!location) return { ok: false, error: "That shop no longer exists." };
+
+  const result = await provisionShopLogin(location);
+  if ("error" in result) return { ok: false, error: result.error };
+
+  await logAction(supabase, member.userId, "shop_login.created", "member", result.userId, {
+    location_id: locationId,
+    code: result.credentials.code,
+  });
+  revalidatePath("/settings");
+  revalidatePath("/team");
+  return { ok: true, data: result.credentials };
 }
 
 /** Soft delete — the shop and all its history stay in the database, just hidden from active lists. */
@@ -97,6 +154,7 @@ export async function deleteLocation(id: string): Promise<ActionResult> {
     return { ok: false, error: "Could not remove the shop. Try again." };
   }
 
+  await deactivateLocationMembers([id]);
   await logAction(supabase, member.userId, "location.deleted", "location", id);
   revalidatePath("/settings");
   return { ok: true };
@@ -110,15 +168,17 @@ export async function deleteBusiness(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const { error: locError } = await supabase
+  const { data: deletedLocs, error: locError } = await supabase
     .from("locations")
     .update({ deleted_at: now })
     .eq("business_id", id)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .select("id");
   if (locError) {
     console.error("[catalog.deleteBusiness] locations", locError.message);
     return { ok: false, error: "Could not remove the business's shops. Try again." };
   }
+  await deactivateLocationMembers((deletedLocs ?? []).map((l) => l.id));
 
   const { error } = await supabase.from("businesses").update({ deleted_at: now }).eq("id", id);
   if (error) {

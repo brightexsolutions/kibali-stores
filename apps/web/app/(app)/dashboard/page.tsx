@@ -76,15 +76,21 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-2">
         <Link
           href="/delivery/new"
-          className="flex h-16 items-center justify-center gap-2 rounded bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+          className="flex h-16 flex-col items-center justify-center rounded bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
         >
-          <PackagePlus className="h-5 w-5" /> Stock Arrived
+          <span className="flex items-center gap-2">
+            <PackagePlus className="h-5 w-5" /> Stock Arrived
+          </span>
+          <span className="text-[11px] font-bold text-white/85">Record →</span>
         </Link>
         <Link
           href="/distribute"
-          className="flex h-16 items-center justify-center gap-2 rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+          className="flex h-16 flex-col items-center justify-center rounded bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
         >
-          <Send className="h-5 w-5" /> Send Stock
+          <span className="flex items-center gap-2">
+            <Send className="h-5 w-5" /> Send Stock
+          </span>
+          <span className="text-[11px] font-bold text-white/85">To a shop →</span>
         </Link>
       </div>
 

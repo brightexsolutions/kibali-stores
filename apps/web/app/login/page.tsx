@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SHOP_LOGIN_DOMAIN, slugifyShopCode } from "@kibali/shared";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -19,8 +20,12 @@ export default function LoginPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const email = String(form.get("email") ?? "").trim();
+    const identifier = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
+    // No "@" = a shop code ("tala-shop") — wrap it in its synthetic email.
+    const email = identifier.includes("@")
+      ? identifier
+      : `${slugifyShopCode(identifier)}@${SHOP_LOGIN_DOMAIN}`;
 
     const { error } = await createClient().auth.signInWithPassword({
       email,
@@ -28,7 +33,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      toast.error("That email or password is not correct. Please try again.");
+      toast.error("That email/shop code or password is not correct. Please try again.");
       setLoading(false);
       return;
     }
@@ -58,16 +63,17 @@ export default function LoginPage() {
           <CardContent className="p-5">
             <form onSubmit={onSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or shop code</Label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="email"
                     name="email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
+                    type="text"
+                    autoComplete="username"
+                    autoCapitalize="none"
                     className="pl-9"
+                    placeholder="you@email.com or tala-shop"
                     required
                   />
                 </div>

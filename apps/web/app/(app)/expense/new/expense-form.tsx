@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createExpense } from "@/app/actions/records";
+import { queueRecord } from "@/lib/outbox";
 
 const CATEGORIES = Object.keys(EXPENSE_LABELS) as ExpenseCategory[];
 const CATEGORY_STYLE: Record<ExpenseCategory, { icon: typeof Home; tone: string }> = {
@@ -48,8 +49,19 @@ export function ExpenseForm({
     form.set("location_id", locationId);
     form.set("category", category);
     form.set("expense_date", expenseDate);
+    form.set("client_ref", crypto.randomUUID()); // lets an offline replay be deduplicated
     startTransition(async () => {
-      const result = await createExpense(form);
+      let result;
+      try {
+        result = await createExpense(form);
+      } catch {
+        // No connection — queue and reset in place (navigating offline may hit
+        // an uncached page).
+        queueRecord("expense", Object.fromEntries(form) as Record<string, unknown>);
+        toast.success("No signal — saved on this phone. It will send automatically.");
+        setAmount("");
+        return;
+      }
       if (!result.ok) return void toast.error(result.error);
       toast.success(`Saved — ${EXPENSE_LABELS[category]} ${formatKES(Number(form.get("amount")))}.`);
       router.push(`/home${window.location.search}`);

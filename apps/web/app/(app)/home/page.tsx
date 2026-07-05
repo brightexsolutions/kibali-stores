@@ -95,10 +95,11 @@ export default async function HomePage({
               <Link
                 key={href}
                 href={`${href}${q}`}
-                className="flex h-20 flex-col items-center justify-center gap-1.5 rounded border bg-background text-xs font-semibold shadow-sm active:scale-[0.98]"
+                className="flex h-24 flex-col items-center justify-center gap-1 rounded border bg-background text-xs font-semibold shadow-sm active:scale-[0.98]"
               >
                 <Icon className="h-5 w-5 text-primary" />
                 {label}
+                <span className="text-[11px] font-bold text-primary">Record →</span>
               </Link>
             ))}
           </div>

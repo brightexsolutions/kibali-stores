@@ -6,7 +6,7 @@ import { requireOwner } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { adjacentMonth, currentMonthKey, monthRange, totalsFor } from "@/lib/summaries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminTable, Td } from "@/components/ui/admin-table";
+import { AdminTable, MobileCard, MobileField, Td } from "@/components/ui/admin-table";
 
 export default async function ReportsPage({
   searchParams,
@@ -166,7 +166,21 @@ export default async function ReportsPage({
       {perLocation.length > 1 && (
         <section className="flex flex-col gap-2">
           <h2 className="font-semibold">By shop</h2>
-          <AdminTable headers={["Shop", "Sales", "Spent", "Profit"]}>
+          <AdminTable
+            headers={["Shop", "Sales", "Spent", "Profit"]}
+            mobile={perLocation.map((l) => (
+              <MobileCard key={l.id} className="gap-1.5">
+                <div className="font-semibold">{l.name}</div>
+                <MobileField label="Sales">{formatKES(l.sales)}</MobileField>
+                <MobileField label="Spent">{formatKES(l.spent)}</MobileField>
+                <MobileField label="Profit">
+                  <span className={l.profit >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+                    {formatKES(l.profit)}
+                  </span>
+                </MobileField>
+              </MobileCard>
+            ))}
+          >
             {perLocation.map((l) => (
               <tr key={l.id}>
                 <Td className="font-medium">{l.name}</Td>

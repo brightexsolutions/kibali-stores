@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import type { Business, Supplier, SupplierBalance } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
-import { AdminTable, Td } from "@/components/ui/admin-table";
+import { AdminTable, MobileCard, MobileField, Td } from "@/components/ui/admin-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +63,41 @@ export function SuppliersManager({
           No suppliers yet — add the first one above.
         </p>
       ) : (
-        <AdminTable headers={["Supplier", "Business", "Last supply", "Delivered", "Paid", "Still owed", ""]}>
+        <AdminTable
+          headers={["Supplier", "Business", "Last supply", "Delivered", "Paid", "Still owed", ""]}
+          mobile={suppliers.map((s) => {
+            const bal = balanceOf(s.id);
+            const owed = bal?.balance_owed ?? 0;
+            return (
+              <MobileCard key={s.id}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <Link href={`/suppliers/${s.id}`} className="font-semibold text-primary underline-offset-2 hover:underline">
+                      {s.name}
+                    </Link>
+                    <div className="text-xs text-muted-foreground">
+                      {businessName(s.business_id)}
+                      {s.phone ? ` · ${s.phone}` : ""}
+                    </div>
+                  </div>
+                  {owed > 0 ? (
+                    <Badge variant="warn">Owes {formatKES(owed)}</Badge>
+                  ) : (
+                    <Badge variant="good">Nothing owed</Badge>
+                  )}
+                </div>
+                <MobileField label="Last supply">{lastSupply(s.id)}</MobileField>
+                <MobileField label="Delivered">{formatKES(bal?.total_delivered ?? 0)}</MobileField>
+                <MobileField label="Paid">{formatKES(bal?.total_paid ?? 0)}</MobileField>
+                <div className="flex justify-end">
+                  <Button variant="ghost" size="sm" onClick={() => setModal({ current: s })}>
+                    Edit
+                  </Button>
+                </div>
+              </MobileCard>
+            );
+          })}
+        >
           {suppliers.map((s) => {
             const bal = balanceOf(s.id);
             const owed = bal?.balance_owed ?? 0;

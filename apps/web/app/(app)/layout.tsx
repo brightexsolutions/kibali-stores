@@ -1,6 +1,8 @@
 import { AppHeader } from "@/components/app-header";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { BottomNav } from "@/components/bottom-nav";
+import { OutboxSync } from "@/components/outbox-sync";
+import { SwRegister } from "@/components/sw-register";
 import { ViewSwitcher } from "@/components/view-switcher";
 import { getSessionMember } from "@/lib/auth";
 import { listAccessibleLocations } from "@/lib/location";
@@ -23,6 +25,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-dvh bg-muted/30">
       <AutoRefresh />
+      <SwRegister />
+      <OutboxSync />
       <AppHeader />
       {isOwner && locations.length > 0 && (
         <ViewSwitcher locations={locations} viewLocationId={viewLocationId} />

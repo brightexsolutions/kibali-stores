@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import type { Business, Product } from "@kibali/shared";
 import { formatKES } from "@kibali/shared";
-import { AdminTable, Td } from "@/components/ui/admin-table";
+import { AdminTable, MobileCard, MobileField, Td } from "@/components/ui/admin-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,32 @@ export function ProductsManager({
       ) : (
         <AdminTable
           headers={["Product", "Business", "Box", "Cost/box", "Sell/box", "Sell/piece", "Status", ""]}
+          mobile={products.map((p) => (
+            <MobileCard key={p.id} className={p.is_active ? "" : "opacity-50"}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {businessName(p.business_id)} · {p.pieces_per_unit} {p.piece_name}s per {p.unit_name}
+                  </div>
+                </div>
+                <Badge variant={p.is_active ? "good" : "muted"}>
+                  {p.is_active ? "Selling" : "Retired"}
+                </Badge>
+              </div>
+              <MobileField label={`Cost per ${p.unit_name}`}>{formatKES(p.cost_price)}</MobileField>
+              <MobileField label={`Sell per ${p.unit_name}`}>{formatKES(p.wholesale_price)}</MobileField>
+              <MobileField label={`Sell per ${p.piece_name}`}>{formatKES(p.retail_price_per_piece)}</MobileField>
+              <div className="flex justify-end gap-1">
+                <Button variant="ghost" size="sm" onClick={() => setModal({ current: p })}>
+                  Edit
+                </Button>
+                <Button variant="ghost" size="sm" disabled={pending} loading={pending} onClick={() => toggleActive(p)}>
+                  {p.is_active ? "Retire" : "Activate"}
+                </Button>
+              </div>
+            </MobileCard>
+          ))}
         >
           {products.map((p) => (
             <tr key={p.id} className={p.is_active ? "" : "opacity-50"}>

@@ -3,7 +3,8 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, HandCoins, Link2, Plus, RefreshCcw, Undo2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, HandCoins, Link2, Plus, RefreshCcw, Undo2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type {
   Business,
   CapitalEntry,
@@ -34,6 +35,13 @@ type ModalState =
   | { kind: "distribute" }
   | null;
 
+export interface ProfitContext {
+  bankedByBusiness: Record<string, number>;
+  bankedTotal: number;
+  sharedByBusiness: Record<string, number>;
+  sharedTotal: number;
+}
+
 export function InvestorsManager({
   summaries,
   history,
@@ -42,6 +50,7 @@ export function InvestorsManager({
   allocations,
   businesses,
   tokens,
+  profitContext,
 }: {
   summaries: InvestorSummary[];
   history: CapitalHistoryEntry[];
@@ -50,9 +59,11 @@ export function InvestorsManager({
   allocations: DistributionAllocation[];
   businesses: Business[];
   tokens: Record<string, string>;
+  profitContext: ProfitContext;
 }) {
   const router = useRouter();
   const [modal, setModal] = useState<ModalState>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [scope, setScope] = useState<string>("");
   const [totalProfit, setTotalProfit] = useState<string>("");
   const [amountOverrides, setAmountOverrides] = useState<Record<string, string>>({});
@@ -234,62 +245,89 @@ export function InvestorsManager({
 
       {summaries.map((s) => {
         const investorHistory = history.filter((h) => h.investor_id === s.investor_id);
+        const expanded = expandedId === s.investor_id;
         return (
-          <Card key={s.investor_id}>
-            <CardHeader className="flex-row items-start justify-between space-y-0">
-              <div>
+          <Card
+            key={s.investor_id}
+            className={cn(
+              "transition-shadow",
+              expanded && "border-primary ring-2 ring-primary/40 shadow-md"
+            )}
+          >
+            {/* Collapsed = just the headline; tap anywhere on it to open. */}
+            <button
+              type="button"
+              onClick={() => setExpandedId(expanded ? null : s.investor_id)}
+              aria-expanded={expanded}
+              className="flex w-full items-center justify-between gap-3 p-4 text-left"
+            >
+              <div className="min-w-0">
                 <CardTitle>{s.name}</CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Capital {formatKES(s.capital)} · share {s.share_pct}%
                 </p>
               </div>
-              <Badge variant="default">{s.share_pct}%</Badge>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                <div className="rounded border bg-background p-2">
-                  <div className="text-xs text-muted-foreground">Received</div>
-                  <div className="font-semibold">{formatKES(s.total_disbursed)}</div>
-                </div>
-                <div className="rounded border bg-background p-2">
-                  <div className="text-xs text-muted-foreground">Returned</div>
-                  <div className="font-semibold">{formatKES(s.total_returned)}</div>
-                </div>
-                <div className="rounded border bg-background p-2">
-                  <div className="text-xs text-muted-foreground">Waiting</div>
-                  <div className="font-semibold">{formatKES(s.pending_amount)}</div>
-                </div>
-              </div>
+              <span className="flex shrink-0 items-center gap-2">
+                <Badge variant="default">{s.share_pct}%</Badge>
+                <span
+                  className={cn(
+                    "flex items-center gap-0.5 text-xs font-semibold text-primary",
+                    expanded && "text-muted-foreground"
+                  )}
+                >
+                  {expanded ? "Close" : "Details"}
+                  <ChevronDown className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")} />
+                </span>
+              </span>
+            </button>
 
-              {investorHistory.length > 0 && (
-                <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                  {investorHistory.slice(0, 5).map((h) => (
-                    <div key={h.entry_id} className="flex items-center justify-between rounded bg-muted/60 px-2 py-1.5">
-                      <span>
-                        {new Date(h.entry_date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "2-digit" })}{" "}
-                        — {h.entry_type === "investment" ? "invested" : "returned profit"}{" "}
-                        {formatKES(h.amount)}
-                      </span>
-                      <span className="font-medium text-foreground">
-                        capital {formatKES(h.running_capital)} → {h.share_pct_after}%
-                      </span>
-                    </div>
-                  ))}
+            {expanded && (
+              <CardContent className="flex flex-col gap-3 pt-0">
+                <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                  <div className="rounded border bg-background p-2">
+                    <div className="text-xs text-muted-foreground">Received</div>
+                    <div className="font-semibold">{formatKES(s.total_disbursed)}</div>
+                  </div>
+                  <div className="rounded border bg-background p-2">
+                    <div className="text-xs text-muted-foreground">Returned</div>
+                    <div className="font-semibold">{formatKES(s.total_returned)}</div>
+                  </div>
+                  <div className="rounded border bg-background p-2">
+                    <div className="text-xs text-muted-foreground">Waiting</div>
+                    <div className="font-semibold">{formatKES(s.pending_amount)}</div>
+                  </div>
                 </div>
-              )}
 
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" size="sm" onClick={() => setModal({ kind: "add-capital", investorId: s.investor_id })}>
-                  <Plus className="h-4 w-4" /> Invest
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => copyLink(s.investor_id)}>
-                  <Copy className="h-4 w-4" /> Copy link
-                </Button>
-                <Button variant="outline" size="sm" disabled={pending} loading={pending} onClick={() => newLink(s.investor_id)}>
-                  <RefreshCcw className="h-4 w-4" /> New link
-                </Button>
-              </div>
-            </CardContent>
+                {investorHistory.length > 0 && (
+                  <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                    {investorHistory.slice(0, 5).map((h) => (
+                      <div key={h.entry_id} className="flex items-center justify-between rounded bg-muted/60 px-2 py-1.5">
+                        <span>
+                          {new Date(h.entry_date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "2-digit" })}{" "}
+                          — {h.entry_type === "investment" ? "invested" : "returned profit"}{" "}
+                          {formatKES(h.amount)}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          capital {formatKES(h.running_capital)} → {h.share_pct_after}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setModal({ kind: "add-capital", investorId: s.investor_id })}>
+                    <Plus className="h-4 w-4" /> Invest
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => copyLink(s.investor_id)}>
+                    <Copy className="h-4 w-4" /> Copy link
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={pending} loading={pending} onClick={() => newLink(s.investor_id)}>
+                    <RefreshCcw className="h-4 w-4" /> New link
+                  </Button>
+                </div>
+              </CardContent>
+            )}
           </Card>
         );
       })}
@@ -372,6 +410,39 @@ export function InvestorsManager({
             <Label htmlFor="d-period">For which period?</Label>
             <Input id="d-period" name="period_label" placeholder="e.g. June 2026" required />
           </div>
+          {(() => {
+            const banked = scope
+              ? profitContext.bankedByBusiness[scope] ?? 0
+              : profitContext.bankedTotal;
+            const shared = scope
+              ? profitContext.sharedByBusiness[scope] ?? 0
+              : profitContext.sharedTotal;
+            const unshared = Math.max(0, Math.round((banked - shared) * 100) / 100);
+            return (
+              <div className="flex flex-col gap-1 rounded border bg-muted/50 p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Profit banked ({businessName(scope || null)})</span>
+                  <span className="font-semibold">{formatKES(banked)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Already shared out</span>
+                  <span className="font-semibold">{formatKES(shared)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 border-t pt-1.5">
+                  <span className="font-medium">Not yet shared</span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-bold">{formatKES(unshared)}</span>
+                    {unshared > 0 && (
+                      <Button type="button" size="sm" variant="outline" onClick={() => setTotalProfit(String(unshared))}>
+                        Use this
+                      </Button>
+                    )}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="d-profit">Profit to share (KSh)</Label>
             <Input
@@ -386,7 +457,7 @@ export function InvestorsManager({
               required
             />
             <p className="text-xs text-muted-foreground">
-              Tip: the dashboard&apos;s “Profit banked” shows profit from finished supplies.
+              Banked = profit from supplies that finished selling. You can share any amount.
             </p>
           </div>
 

@@ -350,6 +350,30 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
 
 export const LOSS_REASONS = ["Melted", "Expired", "Broken", "Other"] as const;
 
+/**
+ * Shop logins: each shop can have its own account (code + password) instead
+ * of a personal email. Supabase auth still needs an email under the hood, so
+ * the code is wrapped in a synthetic address on this domain — never emailed.
+ */
+export const SHOP_LOGIN_DOMAIN = "shops.kibali.local";
+
+export function isShopLoginEmail(email: string): boolean {
+  return email.toLowerCase().endsWith(`@${SHOP_LOGIN_DOMAIN}`);
+}
+
+export function shopCodeFromEmail(email: string): string {
+  return email.split("@")[0];
+}
+
+/** "Tala Shop" -> "tala-shop" */
+export function slugifyShopCode(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
 /** Uniform result shape returned by every server action in every app. */
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }

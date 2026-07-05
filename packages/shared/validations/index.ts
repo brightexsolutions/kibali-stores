@@ -72,6 +72,8 @@ export const saleSchema = z.object({
   sale_type: z.enum(["wholesale", "retail"]),
   customer_name: z.string().trim().max(120).optional().or(z.literal("")),
   items: z.array(saleItemSchema).min(1, "Add at least one item"),
+  // offline outbox idempotency key — a replayed submission is recognized, not duplicated
+  client_ref: uuid.optional().or(z.literal("")),
 });
 
 export const expenseSchema = z.object({
@@ -80,6 +82,7 @@ export const expenseSchema = z.object({
   amount: positiveMoney,
   expense_date: dateStr,
   description: z.string().trim().max(300).optional().or(z.literal("")),
+  client_ref: uuid.optional().or(z.literal("")),
 });
 
 export const deliveryItemSchema = z.object({
@@ -108,6 +111,7 @@ export const lossSchema = z.object({
   unit_level: z.enum(["box", "piece"]),
   reason: z.string().trim().min(1).max(60),
   loss_date: dateStr,
+  client_ref: uuid.optional().or(z.literal("")),
 });
 
 export const distributionSchema = z.object({

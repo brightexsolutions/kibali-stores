@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createSale } from "@/app/actions/records";
+import { queueRecord } from "@/lib/outbox";
 
 type Step = "mode" | "items" | "confirm";
 
@@ -72,7 +73,7 @@ export function SaleWizard({
 
   function save() {
     startTransition(async () => {
-      const result = await createSale({
+      const payload = {
         location_id: locationId,
         sale_date: saleDate,
         sale_type: mode,
@@ -83,7 +84,21 @@ export function SaleWizard({
           unit_level: isBox ? "box" : "piece",
           unit_price: l.unitPrice,
         })),
-      });
+        client_ref: crypto.randomUUID(), // lets an offline replay be deduplicated
+      };
+      let result;
+      try {
+        result = await createSale(payload);
+      } catch {
+        // No connection — queue it and reset the form. Deliberately NO
+        // navigation: the next screen may not be cached offline.
+        queueRecord("sale", payload);
+        toast.success(`No signal — sale (${formatKES(grandTotal)}) saved on this phone. It will send automatically.`);
+        setQuantities({});
+        setPrices({});
+        setStep("mode");
+        return;
+      }
       if (!result.ok) return void toast.error(result.error);
       toast.success(`Sale saved — ${formatKES(grandTotal)}.`);
       router.push(`/home${window.location.search}`);
