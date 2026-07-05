@@ -12,7 +12,8 @@
     "lint": "npm run lint --workspace=apps/web",
     "seed": "tsx scripts/seed.ts",
     "clear-data": "tsx scripts/clear-test-data.ts",
-    "create-super-admin": "tsx scripts/create-super-admin.ts"
+    "create-super-admin": "tsx scripts/create-super-admin.ts",
+    "create-accounts": "tsx scripts/create-accounts.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

@@ -46,13 +46,19 @@ const db = createClient(url, serviceKey, {
 });
 
 // Children first, then parents — matches the foreign-key dependency order.
+// push_subscriptions cascade-delete when their user is removed, but we clear
+// them here too for a truly empty slate. Tables that don't exist yet (e.g. if
+// migration 004 hasn't been run) are skipped, not treated as errors.
 const TABLES_IN_ORDER = [
+  "notification_events",
+  "push_subscriptions",
   "audit_logs",
   "distribution_allocations",
   "profit_distributions",
   "capital_entries",
   "investors",
   "stock_losses",
+  "expenses",
   "sale_items",
   "sales",
   "delivery_items",
@@ -71,6 +77,12 @@ async function clearTable(table: string) {
   // "id is not null" filter (every table has a uuid id column).
   const { error, count } = await db.from(table).delete({ count: "exact" }).not("id", "is", null);
   if (error) {
+    // A missing table (relation does not exist) just means that feature's
+    // migration hasn't been run — nothing to clear, so move on.
+    if (/does not exist|schema cache/i.test(error.message)) {
+      console.log(`• ${table} — not present, skipped`);
+      return;
+    }
     console.error(`✗ ${table}:`, error.message);
     process.exit(1);
   }

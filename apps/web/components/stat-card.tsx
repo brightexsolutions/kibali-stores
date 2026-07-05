@@ -27,19 +27,26 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded border p-3",
+        // min-w-0 lets the grid cell shrink below its content width — without it
+        // a wide money value (e.g. "KSh 18,039.93") forces the column wider than
+        // its 1fr share and pushes neighbouring cards off-screen.
+        "flex min-w-0 flex-col rounded border p-3",
         gradient ? GRADIENTS[tone] : "bg-card"
       )}
     >
-      <div className="flex items-center justify-between">
-        <div className={cn("text-sm", gradient ? "text-white/80" : "text-muted-foreground")}>
+      <div className="flex items-start justify-between gap-1">
+        <div className={cn("text-sm leading-tight", gradient ? "text-white/80" : "text-muted-foreground")}>
           {title}
         </div>
-        {Icon && <Icon className={cn("h-4 w-4", gradient ? "text-white/70" : "text-muted-foreground")} />}
+        {Icon && <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", gradient ? "text-white/70" : "text-muted-foreground")} />}
       </div>
-      <div className="text-2xl font-bold">{value}</div>
+      <div className="mt-1 break-words text-xl font-bold leading-tight tabular-nums sm:text-2xl">
+        {value}
+      </div>
       {hint && (
-        <div className={cn("text-sm", gradient ? "text-white/80" : "text-muted-foreground")}>{hint}</div>
+        <div className={cn("mt-0.5 text-sm leading-tight", gradient ? "text-white/80" : "text-muted-foreground")}>
+          {hint}
+        </div>
       )}
     </div>
   );
