@@ -365,7 +365,7 @@ export function shopCodeFromEmail(email: string): string {
   return email.split("@")[0];
 }
 
-/** "Tala Shop" -> "tala-shop" */
+/** "Migori Shop" -> "migori-shop" */
 export function slugifyShopCode(name: string): string {
   return name
     .toLowerCase()

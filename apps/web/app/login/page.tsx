@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Lock, Mail, Store } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,7 +23,7 @@ export default function LoginPage() {
     const form = new FormData(e.currentTarget);
     const identifier = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
-    // No "@" = a shop code ("tala-shop") — wrap it in its synthetic email.
+    // No "@" = a shop code ("migori-shop") — wrap it in its synthetic email.
     const email = identifier.includes("@")
       ? identifier
       : `${slugifyShopCode(identifier)}@${SHOP_LOGIN_DOMAIN}`;
@@ -73,7 +74,7 @@ export default function LoginPage() {
                     autoComplete="username"
                     autoCapitalize="none"
                     className="pl-9"
-                    placeholder="you@email.com or tala-shop"
+                    placeholder="you@email.com or migori-shop"
                     required
                   />
                 </div>
@@ -85,11 +86,19 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
-                    className="pl-9"
+                    className="pl-9 pr-11"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
               <Button type="submit" size="lg" loading={loading} className="mt-1">

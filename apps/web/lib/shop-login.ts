@@ -36,7 +36,7 @@ export async function provisionShopLogin(location: {
   );
   if (existing) return { error: "This shop already has a shop login." };
 
-  // Unique code from the shop name: tala-shop, tala-shop-2, …
+  // Unique code from the shop name: migori-shop, migori-shop-2, …
   const base = slugifyShopCode(location.name) || "shop";
   let code = base;
   for (let i = 2; i <= 20; i++) {

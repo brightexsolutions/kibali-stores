@@ -205,7 +205,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: "Investors & team",
     question: "How does someone get a login?",
     answer: [
-      "Shops: every new shop gets its own login automatically — a shop code (like “tala-shop”) and a password shown once. That's all the person running the shop needs.",
+      "Shops: every new shop gets its own login automatically — a shop code (like “migori-shop”) and a password shown once. That's all the person running the shop needs.",
       "Owners and extra accounts: the super admin creates them (Team screen → “Create an account”). The app shows a temporary password ONCE — copy and share it.",
       "Everyone is asked to choose their own password the first time they sign in.",
     ],
@@ -217,7 +217,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: "Investors & team",
     question: "What is a shop login?",
     answer: [
-      "Each shop has ONE login of its own — a shop code (like “tala-shop”) plus a password — instead of a personal email.",
+      "Each shop has ONE login of its own — a shop code (like “migori-shop”) plus a password — instead of a personal email.",
       "On the sign-in screen, type the shop code where it asks for “Email or shop code”. No email needed.",
       "Whoever runs the shop uses it. If the person changes, just reset the password from the Team screen.",
       "Missing one? Owners can create it in Businesses & Shops — tap the key icon next to the shop.",
@@ -244,7 +244,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     answer: [
       "It shows which part of Kibali you are working in right now — everything you see and record follows it.",
       "“All of Kibali” = the big picture: dashboard, suppliers, investors.",
-      "A shop name (e.g. “Tala Shop”) = you are working that shop: recording sales, checking its stock, just like its manager.",
+      "A shop name (e.g. “Migori Shop”) = you are working that shop: recording sales, checking its stock, just like its manager.",
       "Tap it and choose “Change” to switch at any time. Picking a shop anywhere in the app also switches you there.",
     ],
     related: ["record-sale", "day-start"],

@@ -236,7 +236,7 @@ export function SettingsManager({
             <input type="hidden" name="business_id" value={modal.businessId} />
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="l-name">Shop name</Label>
-              <Input id="l-name" name="name" defaultValue={modal.current?.name} required />
+              <Input id="l-name" name="name" defaultValue={modal.current?.name} placeholder="e.g. Migori Shop" required />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="l-rent">Monthly rent in KSh (optional)</Label>
